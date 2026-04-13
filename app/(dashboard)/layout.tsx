@@ -102,7 +102,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const raw = window.localStorage.getItem("markt_active_mission_id");
+    const raw = window.localStorage.getItem("xolto_active_mission_id");
     if (!raw) return;
     const parsed = Number(raw);
     if (Number.isFinite(parsed) && parsed > 0) {
@@ -113,9 +113,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (activeMissionId > 0) {
-      window.localStorage.setItem("markt_active_mission_id", String(activeMissionId));
+      window.localStorage.setItem("xolto_active_mission_id", String(activeMissionId));
     } else {
-      window.localStorage.removeItem("markt_active_mission_id");
+      window.localStorage.removeItem("xolto_active_mission_id");
     }
   }, [activeMissionId]);
 
@@ -134,7 +134,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         setShortlist(normalizeShortlist(shortlistRes.shortlist));
         const loadedMissions = Array.isArray(missionsRes.missions) ? missionsRes.missions : [];
         setMissions(loadedMissions);
-        const storedMissionRaw = typeof window !== "undefined" ? window.localStorage.getItem("markt_active_mission_id") : "";
+        const storedMissionRaw = typeof window !== "undefined" ? window.localStorage.getItem("xolto_active_mission_id") : "";
         const storedMissionID = Number(storedMissionRaw);
         setActiveMissionId((current) =>
           resolveActiveMissionID(

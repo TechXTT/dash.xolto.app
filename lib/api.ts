@@ -1,6 +1,6 @@
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const ACCESS_TOKEN_KEY = "marktbot_access_token";
-const REFRESH_TOKEN_KEY = "marktbot_refresh_token";
+const ACCESS_TOKEN_KEY = "xolto_access_token";
+const REFRESH_TOKEN_KEY = "xolto_refresh_token";
 
 export type User = {
   id: string;

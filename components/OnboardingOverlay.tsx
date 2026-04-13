@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "markt_onboarding_completed";
+const STORAGE_KEY = "xolto_onboarding_completed";
 
 interface Step {
   title: string;

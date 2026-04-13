@@ -39,4 +39,4 @@ npm run start
 - `/saved`
 - `/settings`
 
-The billing UI expects `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID` and `NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID` until the later POWER rename phase.
+The billing UI expects `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID` and `NEXT_PUBLIC_STRIPE_POWER_PRICE_ID` until the later POWER rename phase.

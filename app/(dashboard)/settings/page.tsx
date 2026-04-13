@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useDashboardContext } from "../../../components/DashboardContext";
 import { api } from "../../../lib/api";
 
-const TIER_LABELS: Record<string, string> = { free: "Free", pro: "Pro", power: "Power", team: "Power" };
+const TIER_LABELS: Record<string, string> = { free: "Free", pro: "Pro", power: "Power" };
 
 export default function SettingsPage() {
   const { user } = useDashboardContext();
@@ -13,7 +13,7 @@ export default function SettingsPage() {
 
   async function handleCheckout(priceID: string) {
     if (!priceID) {
-      setError("Stripe is not configured. Set NEXT_PUBLIC_STRIPE_PRO_PRICE_ID / NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID in web/.env.local.");
+      setError("Stripe is not configured. Set NEXT_PUBLIC_STRIPE_PRO_PRICE_ID / NEXT_PUBLIC_STRIPE_POWER_PRICE_ID in web/.env.local.");
       return;
     }
 
@@ -99,7 +99,7 @@ export default function SettingsPage() {
                 price="€29"
                 highlight
                 features={["Unlimited missions", "50 active searches", "1 minute polling", "Auto-messaging"]}
-                onUpgrade={() => void handleCheckout(process.env.NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID ?? "")}
+                onUpgrade={() => void handleCheckout(process.env.NEXT_PUBLIC_STRIPE_POWER_PRICE_ID ?? "")}
               />
             </div>
           </section>
