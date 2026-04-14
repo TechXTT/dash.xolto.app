@@ -8,6 +8,18 @@ export type User = {
   name: string;
   tier: string;
   is_admin?: boolean;
+  country_code?: string;
+  region?: string;
+  city?: string;
+  postal_code?: string;
+  preferred_radius_km?: number;
+  cross_border_enabled?: boolean;
+  auth_methods?: string[];
+};
+
+export type AuthProviders = {
+  email_password: boolean;
+  google: boolean;
 };
 
 export type SearchSpec = {
@@ -17,6 +29,10 @@ export type SearchSpec = {
   Name: string;
   Query: string;
   MarketplaceID: string;
+  CountryCode?: string;
+  City?: string;
+  PostalCode?: string;
+  RadiusKm?: number;
   CategoryID: number;
   MaxPrice: number;
   MinPrice: number;
@@ -27,6 +43,12 @@ export type SearchSpec = {
   Attributes?: Record<string, string>;
   Enabled: boolean;
   CheckInterval?: string | number;
+  PriorityClass?: number;
+  NextRunAt?: string;
+  LastRunAt?: string;
+  LastSignalAt?: string;
+  ConsecutiveEmptyRuns?: number;
+  ConsecutiveFailures?: number;
 };
 
 export type Listing = {
@@ -66,6 +88,12 @@ export type Mission = {
   Urgency?: "urgent" | "flexible" | "no-rush";
   AvoidFlags?: string[];
   TravelRadius?: number;
+  CountryCode?: string;
+  Region?: string;
+  City?: string;
+  PostalCode?: string;
+  CrossBorderEnabled?: boolean;
+  MarketplaceScope?: string[];
   Category?: "phone" | "laptop" | "camera" | "other" | string;
   Active?: boolean;
   MatchCount?: number;
@@ -122,6 +150,31 @@ export type AssistantReply = {
   Mission?: Mission | null;
   Recommendations?: Recommendation[];
 };
+
+export type MarketplaceOption = {
+  id: string;
+  label: string;
+  countryCode: string;
+  providerFamily: string;
+};
+
+export const SUPPORTED_COUNTRIES = [
+  { code: "NL", label: "Netherlands" },
+  { code: "BG", label: "Bulgaria" },
+  { code: "DK", label: "Denmark" },
+] as const;
+
+export const MARKETPLACE_OPTIONS: MarketplaceOption[] = [
+  { id: "marktplaats", label: "Marktplaats", countryCode: "NL", providerFamily: "marktplaats" },
+  { id: "vinted_nl", label: "Vinted NL", countryCode: "NL", providerFamily: "vinted" },
+  { id: "olxbg", label: "OLX BG", countryCode: "BG", providerFamily: "olx" },
+  { id: "vinted_dk", label: "Vinted DK", countryCode: "DK", providerFamily: "vinted" },
+];
+
+export function marketplaceCandidates(countryCode?: string, crossBorder = false): MarketplaceOption[] {
+  if (crossBorder) return MARKETPLACE_OPTIONS;
+  return MARKETPLACE_OPTIONS.filter((marketplace) => marketplace.countryCode === (countryCode || "").toUpperCase());
+}
 
 type ErrorPayload = {
   error?: string;
@@ -244,6 +297,9 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
 
 export const api = {
   auth: {
+    providers: async () => apiFetch<AuthProviders>("/auth/providers"),
+    googleStart: (returnTo = "/missions") =>
+      `${API_BASE}/auth/google/start?return_to=${encodeURIComponent(returnTo)}`,
     login: async (email: string, password: string) => {
       const response = await apiFetch<{ access_token: string; refresh_token?: string; user: User }>("/auth/login", {
         method: "POST",
@@ -274,6 +330,10 @@ export const api = {
       clearToken();
       return response;
     },
+  },
+  users: {
+    update: async (user: Partial<User>) =>
+      apiFetch<User>("/users/me", { method: "PUT", body: JSON.stringify(user) }),
   },
   searches: {
     list: async () => apiFetch<{ searches: SearchSpec[] }>("/searches"),

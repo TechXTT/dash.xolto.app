@@ -6,13 +6,22 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 import { DashboardProvider } from "../../components/DashboardContext";
-import { OnboardingOverlay, shouldShowOnboarding } from "../../components/OnboardingOverlay";
+import { LocationSetupOverlay } from "../../components/LocationSetupOverlay";
+import {
+  OnboardingOverlay,
+  shouldShowOnboarding,
+} from "../../components/OnboardingOverlay";
 import { api, Mission, ShortlistEntry, User } from "../../lib/api";
 
 function IconAI() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M8 1.5 9.3 5.2 13 6.5 9.3 7.8 8 11.5 6.7 7.8 3 6.5l3.7-1.3z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path
+        d="M8 1.5 9.3 5.2 13 6.5 9.3 7.8 8 11.5 6.7 7.8 3 6.5l3.7-1.3z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
       <circle cx="13" cy="12" r="1.5" fill="currentColor" opacity="0.5" />
       <circle cx="3.5" cy="12.5" r="1" fill="currentColor" opacity="0.4" />
     </svg>
@@ -21,7 +30,15 @@ function IconAI() {
 
 function IconRadar() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    >
       <circle cx="8" cy="8" r="2" />
       <path d="M8 3a5 5 0 0 1 5 5" />
       <path d="M8 0.5a7.5 7.5 0 0 1 7.5 7.5" opacity="0.5" />
@@ -32,7 +49,15 @@ function IconRadar() {
 
 function IconSaved() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    >
       <path d="M4 2.5h8a.5.5 0 0 1 .5.5v10.5L8 11 3.5 13.5V3a.5.5 0 0 1 .5-.5z" />
     </svg>
   );
@@ -40,7 +65,15 @@ function IconSaved() {
 
 function IconSettings() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    >
       <path d="M2 5h12M2 11h12" />
       <circle cx="5.5" cy="5" r="1.5" fill="currentColor" stroke="none" />
       <circle cx="10.5" cy="11" r="1.5" fill="currentColor" stroke="none" />
@@ -50,22 +83,59 @@ function IconSettings() {
 
 function IconAdmin() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M8 1v2M8 13v2M1 8h2M13 8h2" />
       <circle cx="8" cy="8" r="3" />
-      <path d="M4.2 4.2l1.4 1.4M10.4 10.4l1.4 1.4M4.2 11.8l1.4-1.4M10.4 5.6l1.4-1.4" opacity="0.5" />
+      <path
+        d="M4.2 4.2l1.4 1.4M10.4 10.4l1.4 1.4M4.2 11.8l1.4-1.4M10.4 5.6l1.4-1.4"
+        opacity="0.5"
+      />
     </svg>
   );
 }
 
 const NAV = [
-  { href: "/missions", label: "Missions", description: "Define what to buy", Icon: IconAI },
-  { href: "/matches", label: "Matches", description: "Mission-scoped deals", Icon: IconRadar },
-  { href: "/saved", label: "Saved", description: "Compare top picks", Icon: IconSaved },
-  { href: "/settings", label: "Settings", description: "Account and billing", Icon: IconSettings },
+  {
+    href: "/missions",
+    label: "Missions",
+    description: "Define what to buy",
+    Icon: IconAI,
+  },
+  {
+    href: "/matches",
+    label: "Matches",
+    description: "Mission-scoped deals",
+    Icon: IconRadar,
+  },
+  {
+    href: "/saved",
+    label: "Saved",
+    description: "Compare top picks",
+    Icon: IconSaved,
+  },
+  {
+    href: "/settings",
+    label: "Settings",
+    description: "Account and billing",
+    Icon: IconSettings,
+  },
 ];
 
-const ADMIN_NAV = { href: "/admin", label: "Admin", description: "Usage & users", Icon: IconAdmin };
+const ADMIN_NAV = {
+  href: "/admin",
+  label: "Admin",
+  description: "Usage & users",
+  Icon: IconAdmin,
+};
 
 function initialsForUser(user: User | null) {
   if (!user?.name) return user?.email.slice(0, 1).toUpperCase() || "?";
@@ -81,7 +151,11 @@ function normalizeShortlist(items: ShortlistEntry[]) {
   return items.filter((item) => item.Status !== "removed");
 }
 
-function resolveActiveMissionID(missions: Mission[], currentID: number, fallbackStoredID = 0) {
+function resolveActiveMissionID(
+  missions: Mission[],
+  currentID: number,
+  fallbackStoredID = 0,
+) {
   if (missions.length === 0) return 0;
   const preferred = currentID > 0 ? currentID : fallbackStoredID;
   if (preferred > 0 && missions.some((mission) => mission.ID === preferred)) {
@@ -97,6 +171,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [shortlist, setShortlist] = useState<ShortlistEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showLocationSetup, setShowLocationSetup] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const pathname = usePathname();
 
@@ -113,7 +188,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (activeMissionId > 0) {
-      window.localStorage.setItem("xolto_active_mission_id", String(activeMissionId));
+      window.localStorage.setItem(
+        "xolto_active_mission_id",
+        String(activeMissionId),
+      );
     } else {
       window.localStorage.removeItem("xolto_active_mission_id");
     }
@@ -123,37 +201,56 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function bootstrap() {
+      let bootUser: User | null = null;
       try {
         const [me, shortlistRes, missionsRes] = await Promise.all([
           api.auth.me(),
-          api.shortlist.get().catch(() => ({ shortlist: [] as ShortlistEntry[] })),
+          api.shortlist
+            .get()
+            .catch(() => ({ shortlist: [] as ShortlistEntry[] })),
           api.missions.list().catch(() => ({ missions: [] as Mission[] })),
         ]);
         if (cancelled) return;
+        bootUser = me;
         setUser(me);
+        setShowLocationSetup(!me.country_code);
         setShortlist(normalizeShortlist(shortlistRes.shortlist));
-        const loadedMissions = Array.isArray(missionsRes.missions) ? missionsRes.missions : [];
+        const loadedMissions = Array.isArray(missionsRes.missions)
+          ? missionsRes.missions
+          : [];
         setMissions(loadedMissions);
-        const storedMissionRaw = typeof window !== "undefined" ? window.localStorage.getItem("xolto_active_mission_id") : "";
+        const storedMissionRaw =
+          typeof window !== "undefined"
+            ? window.localStorage.getItem("xolto_active_mission_id")
+            : "";
         const storedMissionID = Number(storedMissionRaw);
         setActiveMissionId((current) =>
           resolveActiveMissionID(
             loadedMissions,
             current,
-            Number.isFinite(storedMissionID) && storedMissionID > 0 ? storedMissionID : 0,
+            Number.isFinite(storedMissionID) && storedMissionID > 0
+              ? storedMissionID
+              : 0,
           ),
         );
       } catch (err) {
         if (!cancelled) {
           const msg = err instanceof Error ? err.message : "";
-          if (msg.includes("401") || msg.toLowerCase().includes("unauthorized") || msg.toLowerCase().includes("missing") || msg.toLowerCase().includes("invalid token")) {
+          if (
+            msg.includes("401") ||
+            msg.toLowerCase().includes("unauthorized") ||
+            msg.toLowerCase().includes("missing") ||
+            msg.toLowerCase().includes("invalid token")
+          ) {
             window.location.replace("/login");
           }
         }
       } finally {
         if (!cancelled) {
           setLoading(false);
-          setShowOnboarding(shouldShowOnboarding());
+          setShowOnboarding(
+            Boolean(bootUser?.country_code) && shouldShowOnboarding(),
+          );
         }
       }
     }
@@ -167,6 +264,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
+
+  async function refreshUser() {
+    const me = await api.auth.me();
+    setUser(me);
+    setShowLocationSetup(!me.country_code);
+  }
 
   async function refreshShortlist() {
     const res = await api.shortlist.get();
@@ -185,7 +288,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   async function addToShortlist(itemID: string) {
     if (shortlistIDs.has(itemID)) return;
     const entry = await api.shortlist.add(itemID);
-    setShortlist((prev) => normalizeShortlist([entry, ...prev.filter((item) => item.ItemID !== itemID)]));
+    setShortlist((prev) =>
+      normalizeShortlist([
+        entry,
+        ...prev.filter((item) => item.ItemID !== itemID),
+      ]),
+    );
   }
 
   async function removeFromShortlist(itemID: string) {
@@ -194,7 +302,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   const allNav = user?.is_admin ? [...NAV, ADMIN_NAV] : NAV;
-  const currentNav = allNav.find((item) => pathname === item.href || pathname?.startsWith(`${item.href}/`)) ?? NAV[0];
+  const currentNav =
+    allNav.find(
+      (item) => pathname === item.href || pathname?.startsWith(`${item.href}/`),
+    ) ?? NAV[0];
 
   if (loading) {
     return (
@@ -209,9 +320,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <DashboardProvider
       value={{
         user,
+        refreshUser,
+        setUser,
         missions,
         activeMissionId,
-        setActiveMission: (missionID: number) => setActiveMissionId(missionID > 0 ? missionID : 0),
+        setActiveMission: (missionID: number) =>
+          setActiveMissionId(missionID > 0 ? missionID : 0),
         refreshMissions,
         shortlist,
         shortlistIDs,
@@ -221,19 +335,104 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         isShortlisted: (itemID: string) => shortlistIDs.has(itemID),
       }}
     >
-      {showOnboarding && <OnboardingOverlay onComplete={() => setShowOnboarding(false)} />}
+      {showLocationSetup && user && (
+        <LocationSetupOverlay
+          user={user}
+          onSaved={(updatedUser) => {
+            setUser(updatedUser);
+            setShowLocationSetup(false);
+            setShowOnboarding(shouldShowOnboarding());
+          }}
+        />
+      )}
+      {showOnboarding && (
+        <OnboardingOverlay onComplete={() => setShowOnboarding(false)} />
+      )}
       <div className="app-shell">
-        {menuOpen && <button type="button" className="app-overlay" aria-label="Close navigation" onClick={() => setMenuOpen(false)} />}
+        {menuOpen && (
+          <button
+            type="button"
+            className="app-overlay"
+            aria-label="Close navigation"
+            onClick={() => setMenuOpen(false)}
+          />
+        )}
 
         <aside className={`app-sidebar${menuOpen ? " open" : ""}`}>
           <div className="sidebar-brand">
             <div className="brand-mark">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 380 100"
+                width="100%"
+                height="100%"
+                preserveAspectRatio="xMinYMid meet"
+              >
+                <defs>
+                  <linearGradient
+                    id="g-front"
+                    x1="0%"
+                    y1="100%"
+                    x2="100%"
+                    y2="0%"
+                  >
+                    <stop offset="0%" stopColor="#0f8f67" />
+                    <stop offset="100%" stopColor="#52d4a5" />
+                  </linearGradient>
+                  <linearGradient
+                    id="g-back-light"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="100%"
+                  >
+                    <stop offset="0%" stopColor="#0a6f4f" />
+                    <stop offset="100%" stopColor="#081510" />
+                  </linearGradient>
+                  <linearGradient
+                    id="g-back-dark"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="100%"
+                  >
+                    <stop offset="0%" stopColor="#0f8f67" />
+                    <stop offset="100%" stopColor="#0a6f4f" />
+                  </linearGradient>
+                  <filter
+                    id="shadow"
+                    x="-30%"
+                    y="-30%"
+                    width="160%"
+                    height="160%"
+                  >
+                    <feDropShadow
+                      dx="0"
+                      dy="6"
+                      stdDeviation="6"
+                      floodColor="#081510"
+                      floodOpacity="0.6"
+                    />
+                  </filter>
+                  <style>{`.text { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 800; font-size: 76px; letter-spacing: -0.04em; fill: #ffffff; }`}</style>
+                </defs>
+                <g>
+                  <path
+                    d="M 10 10 L 40 10 L 90 60 L 90 90 L 60 90 L 10 40 Z"
+                    fill="url(#g-back-dark)"
+                  />
+                  <path
+                    d="M 10 90 L 40 90 L 90 40 L 90 10 L 60 10 L 10 60 Z"
+                    fill="url(#g-front)"
+                    filter="url(#shadow)"
+                  />
+                </g>
+                <text x="105" y="74" className="text">
+                  xolto
+                </text>
               </svg>
             </div>
-            <div>
-              <p className="brand-title">xolto</p>
+            <div className="brand-copy">
               <p className="brand-subtitle">Used electronics copilot</p>
             </div>
           </div>
@@ -245,9 +444,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
 
             {NAV.map(({ href, label, description, Icon }) => {
-              const active = pathname === href || pathname?.startsWith(`${href}/`);
+              const active =
+                pathname === href || pathname?.startsWith(`${href}/`);
               return (
-                <Link key={href} href={href} className={`nav-item${active ? " active" : ""}`}>
+                <Link
+                  key={href}
+                  href={href}
+                  className={`nav-item${active ? " active" : ""}`}
+                >
                   <div className="nav-icon">
                     <Icon />
                   </div>
@@ -258,19 +462,26 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </Link>
               );
             })}
-            {user?.is_admin && (() => {
-              const { href, label, description, Icon } = ADMIN_NAV;
-              const active = pathname === href || pathname?.startsWith(`${href}/`);
-              return (
-                <Link href={href} className={`nav-item${active ? " active" : ""}`}>
-                  <div className="nav-icon"><Icon /></div>
-                  <div>
-                    <p className="nav-label">{label}</p>
-                    <p className="nav-meta">{description}</p>
-                  </div>
-                </Link>
-              );
-            })()}
+            {user?.is_admin &&
+              (() => {
+                const { href, label, description, Icon } = ADMIN_NAV;
+                const active =
+                  pathname === href || pathname?.startsWith(`${href}/`);
+                return (
+                  <Link
+                    href={href}
+                    className={`nav-item${active ? " active" : ""}`}
+                  >
+                    <div className="nav-icon">
+                      <Icon />
+                    </div>
+                    <div>
+                      <p className="nav-label">{label}</p>
+                      <p className="nav-meta">{description}</p>
+                    </div>
+                  </Link>
+                );
+              })()}
           </nav>
 
           <div className="sidebar-footer">
@@ -301,7 +512,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="app-main">
           <header className="app-topbar">
             <div className="topbar-left">
-              <button type="button" className="menu-trigger" onClick={() => setMenuOpen((open) => !open)} aria-label="Open navigation">
+              <button
+                type="button"
+                className="menu-trigger"
+                onClick={() => setMenuOpen((open) => !open)}
+                aria-label="Open navigation"
+              >
                 <span />
                 <span />
                 <span />

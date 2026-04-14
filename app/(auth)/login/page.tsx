@@ -1,15 +1,55 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { api } from "../../../lib/api";
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-.8 2.3-1.8 3.1l3 2.3c1.8-1.7 2.9-4.1 2.9-7 0-.7-.1-1.5-.2-2.2H12Z" />
+      <path fill="#34A853" d="M12 22c2.6 0 4.7-.8 6.3-2.3l-3-2.3c-.8.5-1.9.9-3.3.9-2.5 0-4.6-1.7-5.4-4H3.5v2.4A10 10 0 0 0 12 22Z" />
+      <path fill="#4A90E2" d="M6.6 14.3A6 6 0 0 1 6.3 12c0-.8.1-1.6.3-2.3V7.3H3.5A10 10 0 0 0 2.4 12c0 1.6.4 3.1 1.1 4.6l3.1-2.3Z" />
+      <path fill="#FBBC05" d="M12 5.7c1.4 0 2.6.5 3.6 1.4l2.7-2.7C16.7 2.9 14.6 2 12 2A10 10 0 0 0 3.5 7.3l3.1 2.4c.7-2.3 2.9-4 5.4-4Z" />
+    </svg>
+  );
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleEnabled, setGoogleEnabled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const authError = new URLSearchParams(window.location.search).get("error");
+    if (authError) {
+      setError(authError);
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadProviders() {
+      try {
+        const providers = await api.auth.providers();
+        if (!cancelled) {
+          setGoogleEnabled(Boolean(providers.google));
+        }
+      } catch {
+        if (!cancelled) {
+          setGoogleEnabled(false);
+        }
+      }
+    }
+    void loadProviders();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -27,80 +67,91 @@ export default function LoginPage() {
 
   return (
     <main className="landing-shell">
-    <div className="auth-shell">
-      <section className="auth-panel auth-panel-dark">
-        <span className="landing-kicker">Welcome back</span>
-        <h1>Log in and pick up where your market watch left off.</h1>
-        <p>
-          xolto keeps your missions, matches, saved comparisons, and seller drafts in sync so you can jump straight back into the buying loop.
-        </p>
-        <p className="auth-panel-switch">
-          No account yet?{" "}
-          <Link href="/register" className="auth-panel-link">Create one free</Link>
-        </p>
-      </section>
-
-      <section className="auth-panel">
-        <div className="auth-card">
-          <div className="section-heading">
-            <div>
-              <p className="section-kicker">Sign in</p>
-              <h2>Access your workspace</h2>
-            </div>
-          </div>
-
-          {error && <div className="error-msg">{error}</div>}
-
-          <form onSubmit={onSubmit} className="auth-form">
-            <div className="input-stack">
-              <label htmlFor="email" className="label">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                className="input"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-                autoFocus
-                disabled={loading}
-              />
-            </div>
-
-            <div className="input-stack">
-              <label htmlFor="password" className="label">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                className="input"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <button type="submit" disabled={loading} className="btn-primary auth-submit">
-              {loading ? "Signing in…" : "Sign in"}
-            </button>
-          </form>
-
-          <p className="auth-footer">
+      <div className="auth-shell">
+        <section className="auth-panel auth-panel-dark">
+          <span className="landing-kicker">Welcome back</span>
+          <h1>Log in and pick up where your market watch left off.</h1>
+          <p>
+            xolto keeps your missions, matches, saved comparisons, and seller drafts in sync so you can jump straight back into the buying loop.
+          </p>
+          <p className="auth-panel-switch">
             No account yet?{" "}
-            <Link href="/register">
-              Create one
+            <Link href="/register" className="auth-panel-link">
+              Create one free
             </Link>
           </p>
-        </div>
-      </section>
-    </div>
+        </section>
+
+        <section className="auth-panel">
+          <div className="auth-card">
+            <div className="section-heading">
+              <div>
+                <p className="section-kicker">Sign in</p>
+                <h2>Access your workspace</h2>
+              </div>
+            </div>
+
+            {error && <div className="error-msg">{error}</div>}
+
+            {googleEnabled && (
+              <>
+                <a href={api.auth.googleStart("/missions")} className="btn-primary auth-submit auth-google-btn">
+                  <GoogleIcon />
+                  Continue with Google
+                </a>
+                <div className="auth-divider">
+                  <span>or continue with email</span>
+                </div>
+              </>
+            )}
+
+            <form onSubmit={onSubmit} className="auth-form">
+              <div className="input-stack">
+                <label htmlFor="email" className="label">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  className="input"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  required
+                  autoFocus
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="input-stack">
+                <label htmlFor="password" className="label">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  className="input"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <button type="submit" disabled={loading} className={`${googleEnabled ? "btn-secondary" : "btn-primary"} auth-submit`}>
+                {loading ? "Signing in…" : "Continue with email"}
+              </button>
+            </form>
+
+            <p className="auth-footer">
+              No account yet? <Link href="/register">Create one</Link>
+            </p>
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

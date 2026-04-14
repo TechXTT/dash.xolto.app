@@ -33,6 +33,7 @@ export default function MissionsPage() {
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
+  const [editingMission, setEditingMission] = useState<Mission | null>(null);
   const [updatingID, setUpdatingID] = useState<number | null>(null);
 
   async function updateMissionStatus(mission: Mission, nextStatus: "active" | "paused" | "completed") {
@@ -71,27 +72,9 @@ export default function MissionsPage() {
   }
 
   async function quickEditMission(mission: Mission) {
-    if (!mission.ID) return;
-    const nextName = window.prompt("Mission name", mission.Name || "");
-    if (nextName === null) return;
-    const currentBudget = mission.BudgetMax ? String(mission.BudgetMax) : "";
-    const nextBudgetRaw = window.prompt("Budget max (EUR)", currentBudget);
-    if (nextBudgetRaw === null) return;
-    const nextBudget = Number(nextBudgetRaw);
-    setError("");
-    setUpdatingID(mission.ID);
-    try {
-      await api.missions.update(mission.ID, {
-        ...mission,
-        Name: nextName.trim() || mission.Name,
-        BudgetMax: Number.isFinite(nextBudget) && nextBudget > 0 ? Math.round(nextBudget) : mission.BudgetMax,
-      });
-      await refreshMissions();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update mission");
-    } finally {
-      setUpdatingID(null);
-    }
+    setEditingMission(mission);
+    setShowAssistant(false);
+    setShowForm(true);
   }
 
   return (
@@ -105,10 +88,26 @@ export default function MissionsPage() {
           </p>
         </div>
         <div className="hero-actions">
-          <button type="button" className="btn-secondary" onClick={() => setShowForm((v) => !v)}>
-            {showForm ? "Hide form" : "Structured form"}
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => {
+              setEditingMission(null);
+              setShowAssistant(false);
+              setShowForm((value) => !value);
+            }}
+          >
+            {showForm && !editingMission ? "Hide form" : "Structured form"}
           </button>
-          <button type="button" className="btn-primary" onClick={() => setShowAssistant((v) => !v)}>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => {
+              setEditingMission(null);
+              setShowForm(false);
+              setShowAssistant((value) => !value);
+            }}
+          >
             {showAssistant ? "Hide assistant" : "Describe what you want"}
           </button>
         </div>
@@ -118,13 +117,20 @@ export default function MissionsPage() {
 
       {showForm && (
         <MissionForm
-          onCreated={async (mission) => {
+          initialMission={editingMission}
+          onSaved={async (mission) => {
             await refreshMissions();
             if (mission.ID) setActiveMission(mission.ID);
             setShowForm(false);
-            router.push("/matches");
+            setEditingMission(null);
+            if (!editingMission?.ID) {
+              router.push("/matches");
+            }
           }}
-          onCancel={() => setShowForm(false)}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingMission(null);
+          }}
         />
       )}
 

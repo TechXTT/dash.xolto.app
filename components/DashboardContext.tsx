@@ -7,6 +7,8 @@ import type { Mission, ShortlistEntry, User } from "../lib/api";
 
 type DashboardContextValue = {
   user: User | null;
+  refreshUser: () => Promise<void>;
+  setUser: (user: User | null) => void;
   missions: Mission[];
   activeMissionId: number;
   setActiveMission: (missionID: number) => void;
