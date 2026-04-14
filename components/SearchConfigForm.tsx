@@ -30,9 +30,20 @@ type DraftState = {
   offerPercentage: string;
   enabled: boolean;
   condition: string[];
+  messageTemplate: string;
+  templateMarktplaats: string;
+  templateVintedNL: string;
+  templateVintedDK: string;
+  templateOLXBG: string;
 };
 
+function readTemplateAttr(attrs: Record<string, string> | undefined, key: string) {
+  if (!attrs) return "";
+  return (attrs[key] || "").trim();
+}
+
 function draftFromSearch(search?: Partial<SearchSpec>): DraftState {
+  const attrs = search?.Attributes;
   return {
     name: search?.Name || "",
     query: search?.Query || "",
@@ -43,6 +54,11 @@ function draftFromSearch(search?: Partial<SearchSpec>): DraftState {
     offerPercentage: String(search?.OfferPercentage || 72),
     enabled: search?.Enabled ?? true,
     condition: search?.Condition?.length ? search.Condition : ["like_new", "good"],
+    messageTemplate: search?.MessageTemplate || "",
+    templateMarktplaats: readTemplateAttr(attrs, "message_template_marktplaats"),
+    templateVintedNL: readTemplateAttr(attrs, "message_template_vinted_nl"),
+    templateVintedDK: readTemplateAttr(attrs, "message_template_vinted_dk"),
+    templateOLXBG: readTemplateAttr(attrs, "message_template_olxbg"),
   };
 }
 
@@ -77,6 +93,21 @@ export function SearchConfigForm({
     setError("");
     setSaving(true);
 
+    const nextAttributes: Record<string, string> = { ...(initialValue?.Attributes || {}) };
+    const templateAttrs: Record<string, string> = {
+      message_template_marktplaats: draft.templateMarktplaats.trim(),
+      message_template_vinted_nl: draft.templateVintedNL.trim(),
+      message_template_vinted_dk: draft.templateVintedDK.trim(),
+      message_template_olxbg: draft.templateOLXBG.trim(),
+    };
+    for (const [key, value] of Object.entries(templateAttrs)) {
+      if (value) {
+        nextAttributes[key] = value;
+      } else {
+        delete nextAttributes[key];
+      }
+    }
+
     const payload: Partial<SearchSpec> = {
       Name: draft.name.trim(),
       Query: draft.query.trim(),
@@ -88,8 +119,8 @@ export function SearchConfigForm({
       Enabled: draft.enabled,
       MinPrice: initialValue?.MinPrice || 0,
       AutoMessage: initialValue?.AutoMessage ?? false,
-      MessageTemplate: initialValue?.MessageTemplate || "",
-      Attributes: initialValue?.Attributes || {},
+      MessageTemplate: draft.messageTemplate.trim(),
+      Attributes: nextAttributes,
       CheckInterval: intervalMinutesToDurationNs(Number(draft.checkInterval) || 5),
     };
 
@@ -171,7 +202,9 @@ export function SearchConfigForm({
             onChange={(e) => setDraft((current) => ({ ...current, marketplaceID: e.target.value }))}
           >
             <option value="marktplaats">Marktplaats</option>
-            <option value="vinted">Vinted</option>
+            <option value="vinted">Vinted (legacy)</option>
+            <option value="vinted_nl">Vinted NL</option>
+            <option value="vinted_dk">Vinted DK</option>
             <option value="olxbg">OLX Bulgaria</option>
           </select>
         </div>
@@ -255,6 +288,79 @@ export function SearchConfigForm({
               );
             })}
           </div>
+        </div>
+
+        <div className="input-stack search-form-full">
+          <label className="label" htmlFor="search-message-template">
+            Default seller message template (optional)
+          </label>
+          <textarea
+            id="search-message-template"
+            className="input"
+            rows={3}
+            placeholder="Hi! I'm interested in {{.Title}}. Would you consider EUR {{.OfferPrice}}?"
+            value={draft.messageTemplate}
+            onChange={(e) => setDraft((current) => ({ ...current, messageTemplate: e.target.value }))}
+          />
+          <p className="section-support">
+            {`Template variables: {{.Title}}, {{.OfferPrice}}, {{.OfferPriceEuro}}, {{.AskPrice}}, {{.AskPriceEuro}}, {{.FairPriceEuro}}.`}
+          </p>
+        </div>
+
+        <div className="input-stack search-form-full">
+          <label className="label" htmlFor="search-template-marktplaats">
+            Marketplace-specific template: Marktplaats (NL)
+          </label>
+          <textarea
+            id="search-template-marktplaats"
+            className="input"
+            rows={2}
+            placeholder="Hoi! Ik heb interesse in {{.Title}}. Zou {{.OfferPriceEuro}} voor je werken?"
+            value={draft.templateMarktplaats}
+            onChange={(e) => setDraft((current) => ({ ...current, templateMarktplaats: e.target.value }))}
+          />
+        </div>
+
+        <div className="input-stack search-form-full">
+          <label className="label" htmlFor="search-template-olxbg">
+            Marketplace-specific template: OLX BG (BG)
+          </label>
+          <textarea
+            id="search-template-olxbg"
+            className="input"
+            rows={2}
+            placeholder="Здравейте! Интересувам се от {{.Title}}. Бихте ли приели {{.OfferPriceEuro}}?"
+            value={draft.templateOLXBG}
+            onChange={(e) => setDraft((current) => ({ ...current, templateOLXBG: e.target.value }))}
+          />
+        </div>
+
+        <div className="input-stack search-form-full">
+          <label className="label" htmlFor="search-template-vinted-nl">
+            Marketplace-specific template: Vinted NL
+          </label>
+          <textarea
+            id="search-template-vinted-nl"
+            className="input"
+            rows={2}
+            placeholder="Hoi! Is {{.Title}} nog beschikbaar? Zou {{.OfferPriceEuro}} passen?"
+            value={draft.templateVintedNL}
+            onChange={(e) => setDraft((current) => ({ ...current, templateVintedNL: e.target.value }))}
+          />
+        </div>
+
+        <div className="input-stack search-form-full">
+          <label className="label" htmlFor="search-template-vinted-dk">
+            Marketplace-specific template: Vinted DK
+          </label>
+          <textarea
+            id="search-template-vinted-dk"
+            className="input"
+            rows={2}
+            placeholder="Hi! Is {{.Title}} still available? Would {{.OfferPriceEuro}} work?"
+            value={draft.templateVintedDK}
+            onChange={(e) => setDraft((current) => ({ ...current, templateVintedDK: e.target.value }))}
+          />
         </div>
 
         <div className="search-form-full search-form-footer">
