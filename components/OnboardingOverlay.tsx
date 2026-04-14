@@ -16,13 +16,51 @@ const STEPS: Step[] = [
     description:
       "Your AI-powered copilot for buying used electronics. We'll walk you through the core workflow so you can start finding deals in minutes.",
     icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinejoin="round"
-        />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 380 100"
+        width="100%"
+        height="100%"
+        preserveAspectRatio="xMinYMid meet"
+      >
+        <defs>
+          <linearGradient id="g-front" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#0f8f67" />
+            <stop offset="100%" stopColor="#52d4a5" />
+          </linearGradient>
+          <linearGradient id="g-back-light" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#0a6f4f" />
+            <stop offset="100%" stopColor="#081510" />
+          </linearGradient>
+          <linearGradient id="g-back-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#0f8f67" />
+            <stop offset="100%" stopColor="#0a6f4f" />
+          </linearGradient>
+          <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow
+              dx="0"
+              dy="6"
+              stdDeviation="6"
+              floodColor="#081510"
+              floodOpacity="0.6"
+            />
+          </filter>
+          <style>{`.text { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 800; font-size: 76px; letter-spacing: -0.04em; fill: #ffffff; }`}</style>
+        </defs>
+        <g>
+          <path
+            d="M 10 10 L 40 10 L 90 60 L 90 90 L 60 90 L 10 40 Z"
+            fill="url(#g-back-dark)"
+          />
+          <path
+            d="M 10 90 L 40 90 L 90 40 L 90 10 L 60 10 L 10 60 Z"
+            fill="url(#g-front)"
+            filter="url(#shadow)"
+          />
+        </g>
+        <text x="105" y="74" className="text">
+          xolto
+        </text>
       </svg>
     ),
   },
@@ -32,7 +70,12 @@ const STEPS: Step[] = [
       "Start by defining what you're looking for — device type, budget, condition, and must-have features. You can use the structured form or just describe it in plain language.",
     icon: (
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2.5 14 7.8 19.5 9.5 14 11.2 12 16.5 10 11.2 4.5 9.5l5.5-1.7z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+        <path
+          d="M12 2.5 14 7.8 19.5 9.5 14 11.2 12 16.5 10 11.2 4.5 9.5l5.5-1.7z"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
         <circle cx="19" cy="18" r="2" fill="currentColor" opacity="0.4" />
         <circle cx="5" cy="19" r="1.5" fill="currentColor" opacity="0.3" />
       </svg>
@@ -43,7 +86,15 @@ const STEPS: Step[] = [
     description:
       "xolto continuously scans marketplaces for listings that fit your mission. Each match gets an AI-generated score, fair price estimate, and risk flags so you can spot the best deals instantly.",
     icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      >
         <circle cx="12" cy="12" r="3" />
         <path d="M12 5a7 7 0 0 1 7 7" />
         <path d="M12 1.5a10.5 10.5 0 0 1 10.5 10.5" opacity="0.4" />
@@ -55,7 +106,15 @@ const STEPS: Step[] = [
     description:
       "Shortlist your top picks and compare them side by side — asking price, fair value, suggested offer, risk concerns, and a clear verdict for each listing.",
     icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round">
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      >
         <path d="M6 3.5h12a1 1 0 0 1 1 1v15L12 16 5 19.5v-15a1 1 0 0 1 1-1z" />
       </svg>
     ),
@@ -65,7 +124,16 @@ const STEPS: Step[] = [
     description:
       "Create your first mission and let xolto do the heavy lifting. The AI keeps hunting 24/7 so you never miss a deal.",
     icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
         <path d="M20 6 9 17l-5-5" />
       </svg>
     ),
@@ -119,7 +187,10 @@ export function OnboardingOverlay({ onComplete }: { onComplete: () => void }) {
 
         <div className="onboarding-progress">
           {STEPS.map((_, i) => (
-            <span key={i} className={`onboarding-dot${i === step ? " active" : ""}${i < step ? " done" : ""}`} />
+            <span
+              key={i}
+              className={`onboarding-dot${i === step ? " active" : ""}${i < step ? " done" : ""}`}
+            />
           ))}
         </div>
 
