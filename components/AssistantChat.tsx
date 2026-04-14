@@ -49,10 +49,10 @@ function AIAvatar() {
     <div className="ai-avatar" aria-hidden>
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 380 100"
+        viewBox="0 0 100 100"
         width="100%"
         height="100%"
-        preserveAspectRatio="xMinYMid meet"
+        preserveAspectRatio="xMidYMid meet"
       >
         <defs>
           <linearGradient id="g-front" x1="0%" y1="100%" x2="100%" y2="0%">
@@ -76,7 +76,6 @@ function AIAvatar() {
               floodOpacity="0.6"
             />
           </filter>
-          <style>{`.text { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 800; font-size: 76px; letter-spacing: -0.04em; fill: #ffffff; }`}</style>
         </defs>
         <g>
           <path
@@ -89,9 +88,6 @@ function AIAvatar() {
             filter="url(#shadow)"
           />
         </g>
-        <text x="105" y="74" className="text">
-          xolto
-        </text>
       </svg>
     </div>
   );
