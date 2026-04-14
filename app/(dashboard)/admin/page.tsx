@@ -88,6 +88,9 @@ export default function AdminPage() {
             This view follows the same mission dashboard patterns, but pivots the data toward platform health:
             who is active, how much AI is being used, and whether failures or spend are trending up.
           </p>
+          <p className="hero-copy">
+            Primary admin operations now live in <a href="https://admin.xolto.app" target="_blank" rel="noreferrer">admin.xolto.app</a>.
+          </p>
         </div>
         <div className="stats-row">
           <div className="stat-card">
