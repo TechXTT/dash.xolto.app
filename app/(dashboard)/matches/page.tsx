@@ -9,13 +9,15 @@ import { api, Listing } from "../../../lib/api";
 import { connectDealStream } from "../../../lib/sse";
 
 type SortKey = "score" | "price_asc" | "price_desc" | "newest";
-type MarketplaceFilter = "all" | "marktplaats" | "vinted" | "olxbg";
+type MarketplaceFilter = "all" | "marktplaats" | "vinted" | "vinted_nl" | "vinted_dk" | "olxbg";
 type ConditionFilter = "all" | "new" | "like_new" | "good" | "fair";
 
 const MARKETPLACE_LABELS: Record<string, string> = {
   all: "All markets",
   marktplaats: "Marktplaats",
   vinted: "Vinted",
+  vinted_nl: "Vinted NL",
+  vinted_dk: "Vinted DK",
   olxbg: "OLX BG",
 };
 

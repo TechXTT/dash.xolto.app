@@ -18,6 +18,8 @@ interface Props {
 const MARKETPLACE_LABELS: Record<string, string> = {
   marktplaats: "Marktplaats",
   vinted: "Vinted",
+  vinted_nl: "Vinted NL",
+  vinted_dk: "Vinted DK",
   olxbg: "OLX BG",
 };
 
