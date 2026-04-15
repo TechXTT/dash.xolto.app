@@ -1,6 +1,4 @@
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-const ACCESS_TOKEN_KEY = 'xolto_access_token';
-const REFRESH_TOKEN_KEY = 'xolto_refresh_token';
 
 export type User = {
   id: string;
@@ -187,42 +185,8 @@ type ErrorPayload = {
   detail?: string;
 };
 
-function canUseStorage() {
-  return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
-}
-
-export function getToken(): string {
-  if (!canUseStorage()) return '';
-  return window.localStorage.getItem(ACCESS_TOKEN_KEY) || '';
-}
-
-export function setToken(token: string) {
-  if (!canUseStorage()) return;
-  if (!token) {
-    window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-    return;
-  }
-  window.localStorage.setItem(ACCESS_TOKEN_KEY, token);
-}
-
 export function clearToken() {
-  if (!canUseStorage()) return;
-  window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-  window.localStorage.removeItem(REFRESH_TOKEN_KEY);
-}
-
-function getRefreshToken(): string {
-  if (!canUseStorage()) return '';
-  return window.localStorage.getItem(REFRESH_TOKEN_KEY) || '';
-}
-
-function setRefreshToken(token: string) {
-  if (!canUseStorage()) return;
-  if (!token) {
-    window.localStorage.removeItem(REFRESH_TOKEN_KEY);
-    return;
-  }
-  window.localStorage.setItem(REFRESH_TOKEN_KEY, token);
+  // Cookie-based auth: no local token state to clear.
 }
 
 async function normalizeApiError(res: Response): Promise<string> {
@@ -257,18 +221,6 @@ async function rawFetch(path: string, options?: RequestInit): Promise<Response> 
   if (!(options?.body instanceof FormData) && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
-  if (!headers.has('Authorization')) {
-    const token = getToken();
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
-    }
-  }
-  if (path === '/auth/refresh' && !headers.has('X-Refresh-Token')) {
-    const refreshToken = getRefreshToken();
-    if (refreshToken) {
-      headers.set('X-Refresh-Token', refreshToken);
-    }
-  }
 
   return fetch(`${API_BASE}${path}`, {
     ...options,
@@ -287,20 +239,8 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   ) {
     const refreshRes = await rawFetch('/auth/refresh', { method: 'POST' });
     if (refreshRes.ok) {
-      try {
-        const payload = (await refreshRes.clone().json()) as {
-          access_token?: string;
-          refresh_token?: string;
-        };
-        if (payload.access_token) setToken(payload.access_token);
-        if (payload.refresh_token) setRefreshToken(payload.refresh_token);
-      } catch {
-        // Ignore malformed refresh payloads and retry with cookies if present.
-      }
       res = await rawFetch(path, options);
     }
-    // Do NOT call clearToken() on failed refresh — server may be temporarily down.
-    // Let the original 401 propagate so callers can decide what to do.
   }
   if (!res.ok) {
     throw new Error(await normalizeApiError(res));
@@ -321,8 +261,6 @@ export const api = {
           body: JSON.stringify({ email, password }),
         },
       );
-      setToken(response.access_token);
-      if (response.refresh_token) setRefreshToken(response.refresh_token);
       return response;
     },
     register: async (email: string, password: string, name: string) => {
@@ -333,8 +271,6 @@ export const api = {
           body: JSON.stringify({ email, password, name }),
         },
       );
-      setToken(response.access_token);
-      if (response.refresh_token) setRefreshToken(response.refresh_token);
       return response;
     },
     me: async () => apiFetch<User>('/users/me'),
@@ -343,8 +279,6 @@ export const api = {
         '/auth/refresh',
         { method: 'POST' },
       );
-      setToken(response.access_token);
-      if (response.refresh_token) setRefreshToken(response.refresh_token);
       return response;
     },
     logout: async () => {
