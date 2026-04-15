@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-import { api } from "../lib/api";
+import { api } from '../lib/api';
 
 export default function HomePage() {
   const [checking, setChecking] = useState(true);
@@ -12,7 +12,7 @@ export default function HomePage() {
     api.auth
       .me()
       .then(() => {
-        window.location.replace("/missions");
+        window.location.replace('/missions');
       })
       .catch(() => {
         setChecking(false);
@@ -35,7 +35,8 @@ export default function HomePage() {
           <span className="landing-kicker">Premium marketplace intelligence</span>
           <h1>Buy used electronics without overpaying.</h1>
           <p>
-            xolto scans second-hand listings, estimates fair value, flags risks, and tells you exactly which sellers to contact first.
+            xolto scans second-hand listings, estimates fair value, flags risks, and tells you
+            exactly which sellers to contact first.
           </p>
           <div className="hero-actions">
             <Link href="/login" className="btn-primary">

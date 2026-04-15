@@ -1,51 +1,55 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-import { AssistantChat } from "../../../components/AssistantChat";
-import { useDashboardContext } from "../../../components/DashboardContext";
-import { MissionForm } from "../../../components/MissionForm";
-import { api, Mission } from "../../../lib/api";
+import { AssistantChat } from '../../../components/AssistantChat';
+import { useDashboardContext } from '../../../components/DashboardContext';
+import { MissionForm } from '../../../components/MissionForm';
+import { api, Mission } from '../../../lib/api';
 
 function missionStatusLabel(status?: string) {
-  switch ((status || "").toLowerCase()) {
-    case "paused":
-      return "Paused";
-    case "completed":
-      return "Completed";
+  switch ((status || '').toLowerCase()) {
+    case 'paused':
+      return 'Paused';
+    case 'completed':
+      return 'Completed';
     default:
-      return "Active";
+      return 'Active';
   }
 }
 
 function formatLastMatch(value?: string) {
-  if (!value) return "No matches yet";
+  if (!value) return 'No matches yet';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "No matches yet";
-  if (date.getUTCFullYear() < 2005) return "No matches yet";
+  if (Number.isNaN(date.getTime())) return 'No matches yet';
+  if (date.getUTCFullYear() < 2005) return 'No matches yet';
   return `Last match ${date.toLocaleString()}`;
 }
 
 export default function MissionsPage() {
   const router = useRouter();
-  const { missions, refreshMissions, setActiveMission, activeMissionId, refreshShortlist } = useDashboardContext();
-  const [error, setError] = useState("");
+  const { missions, refreshMissions, setActiveMission, activeMissionId, refreshShortlist } =
+    useDashboardContext();
+  const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
   const [editingMission, setEditingMission] = useState<Mission | null>(null);
   const [updatingID, setUpdatingID] = useState<number | null>(null);
 
-  async function updateMissionStatus(mission: Mission, nextStatus: "active" | "paused" | "completed") {
+  async function updateMissionStatus(
+    mission: Mission,
+    nextStatus: 'active' | 'paused' | 'completed',
+  ) {
     if (!mission.ID) return;
-    setError("");
+    setError('');
     setUpdatingID(mission.ID);
     try {
       await api.missions.updateStatus(mission.ID, nextStatus);
       await refreshMissions();
-      if (nextStatus === "active") setActiveMission(mission.ID);
+      if (nextStatus === 'active') setActiveMission(mission.ID);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update mission status");
+      setError(err instanceof Error ? err.message : 'Failed to update mission status');
     } finally {
       setUpdatingID(null);
     }
@@ -57,7 +61,7 @@ export default function MissionsPage() {
       `Delete mission "${mission.Name}"? This removes its searches, matches, and saved items.`,
     );
     if (!confirmed) return;
-    setError("");
+    setError('');
     setUpdatingID(mission.ID);
     try {
       await api.missions.delete(mission.ID);
@@ -65,7 +69,7 @@ export default function MissionsPage() {
       await refreshMissions();
       await refreshShortlist();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete mission");
+      setError(err instanceof Error ? err.message : 'Failed to delete mission');
     } finally {
       setUpdatingID(null);
     }
@@ -84,7 +88,8 @@ export default function MissionsPage() {
           <p className="section-kicker">Buy missions</p>
           <h2>Define one mission, keep all actions in context</h2>
           <p className="hero-copy">
-            Missions connect your intent, monitors, matches, saved items, and seller outreach into one loop.
+            Missions connect your intent, monitors, matches, saved items, and seller outreach into
+            one loop.
           </p>
         </div>
         <div className="hero-actions">
@@ -97,7 +102,7 @@ export default function MissionsPage() {
               setShowForm((value) => !value);
             }}
           >
-            {showForm && !editingMission ? "Hide form" : "Structured form"}
+            {showForm && !editingMission ? 'Hide form' : 'Structured form'}
           </button>
           <button
             type="button"
@@ -108,7 +113,7 @@ export default function MissionsPage() {
               setShowAssistant((value) => !value);
             }}
           >
-            {showAssistant ? "Hide assistant" : "Describe what you want"}
+            {showAssistant ? 'Hide assistant' : 'Describe what you want'}
           </button>
         </div>
       </section>
@@ -124,7 +129,7 @@ export default function MissionsPage() {
             setShowForm(false);
             setEditingMission(null);
             if (!editingMission?.ID) {
-              router.push("/matches");
+              router.push('/matches');
             }
           }}
           onCancel={() => {
@@ -140,7 +145,7 @@ export default function MissionsPage() {
           onMissionCreated={async (mission) => {
             await refreshMissions();
             if (mission.ID) setActiveMission(mission.ID);
-            router.push("/matches");
+            router.push('/matches');
           }}
         />
       )}
@@ -148,24 +153,29 @@ export default function MissionsPage() {
       {missions.length === 0 ? (
         <div className="surface-panel empty-state">
           <h3>Start your first buy mission</h3>
-          <p>Use the structured form or describe your goal in plain language. Creating a mission starts monitoring immediately.</p>
+          <p>
+            Use the structured form or describe your goal in plain language. Creating a mission
+            starts monitoring immediately.
+          </p>
         </div>
       ) : (
         <div className="search-card-list">
           {missions.map((mission) => {
-            const status = (mission.Status || "active") as "active" | "paused" | "completed";
+            const status = (mission.Status || 'active') as 'active' | 'paused' | 'completed';
             const isUpdating = updatingID === mission.ID;
             return (
               <article key={mission.ID} className="search-card saved">
                 <div className="search-card-header">
                   <div>
                     <h3>{mission.Name}</h3>
-                    <p>{mission.TargetQuery || "No query set"}</p>
+                    <p>{mission.TargetQuery || 'No query set'}</p>
                   </div>
-                  <span className={`status-pill${status === "active" ? " on" : ""}`}>{missionStatusLabel(status)}</span>
+                  <span className={`status-pill${status === 'active' ? ' on' : ''}`}>
+                    {missionStatusLabel(status)}
+                  </span>
                 </div>
                 <p className="search-card-copy">
-                  {(mission.MatchCount ?? 0)} matches · {formatLastMatch(mission.LastMatchAt)}
+                  {mission.MatchCount ?? 0} matches · {formatLastMatch(mission.LastMatchAt)}
                 </p>
                 <div className="search-card-actions">
                   <button
@@ -174,7 +184,7 @@ export default function MissionsPage() {
                     onClick={() => {
                       if (mission.ID) {
                         setActiveMission(mission.ID);
-                        router.push("/matches");
+                        router.push('/matches');
                       }
                     }}
                     disabled={isUpdating}
@@ -184,19 +194,26 @@ export default function MissionsPage() {
                   <button
                     type="button"
                     className="btn-secondary"
-                    onClick={() => void updateMissionStatus(mission, status === "active" ? "paused" : "active")}
+                    onClick={() =>
+                      void updateMissionStatus(mission, status === 'active' ? 'paused' : 'active')
+                    }
                     disabled={isUpdating || !mission.ID}
                   >
-                    {status === "active" ? "Pause" : "Resume"}
+                    {status === 'active' ? 'Pause' : 'Resume'}
                   </button>
-                  <button type="button" className="btn-ghost" onClick={() => void quickEditMission(mission)} disabled={isUpdating || !mission.ID}>
+                  <button
+                    type="button"
+                    className="btn-ghost"
+                    onClick={() => void quickEditMission(mission)}
+                    disabled={isUpdating || !mission.ID}
+                  >
                     Edit
                   </button>
-                  {status !== "completed" && (
+                  {status !== 'completed' && (
                     <button
                       type="button"
                       className="btn-ghost"
-                      onClick={() => void updateMissionStatus(mission, "completed")}
+                      onClick={() => void updateMissionStatus(mission, 'completed')}
                       disabled={isUpdating || !mission.ID}
                     >
                       Complete
@@ -210,7 +227,9 @@ export default function MissionsPage() {
                   >
                     Delete
                   </button>
-                  {activeMissionId === mission.ID && <span className="success-badge">Active context</span>}
+                  {activeMissionId === mission.ID && (
+                    <span className="success-badge">Active context</span>
+                  )}
                 </div>
               </article>
             );

@@ -1,48 +1,47 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 
-import { api, AssistantReply, Mission, Recommendation } from "../lib/api";
-import { formatEuroFromCents } from "../lib/format";
+import { api, AssistantReply, Mission, Recommendation } from '../lib/api';
+import { formatEuroFromCents } from '../lib/format';
 
 type Message = {
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   text: string;
   mission?: Mission | null;
   recommendations?: Recommendation[];
 };
 
 const PROMPTS = [
-  "I want a Sony A6700, good condition, under EUR900",
-  "Looking for a MacBook Pro 14 M3, like new, max EUR1600",
-  "Canon RF 50mm f/1.8 lens, any condition, under EUR220",
-  "Gaming laptop RTX 4060, good condition, budget EUR750",
+  'I want a Sony A6700, good condition, under EUR900',
+  'Looking for a MacBook Pro 14 M3, like new, max EUR1600',
+  'Canon RF 50mm f/1.8 lens, any condition, under EUR220',
+  'Gaming laptop RTX 4060, good condition, budget EUR750',
 ];
 
-const LABEL_COPY: Record<string, { label: string; color: string; bg: string }> =
-  {
-    buy_now: {
-      label: "Buy now",
-      color: "var(--brand-700)",
-      bg: "var(--brand-100)",
-    },
-    worth_watching: {
-      label: "Watch",
-      color: "var(--warning-500)",
-      bg: "rgba(245,158,11,0.10)",
-    },
-    ask_questions: {
-      label: "Ask first",
-      color: "var(--fg-500)",
-      bg: "rgba(10,26,18,0.06)",
-    },
-    skip: {
-      label: "Skip",
-      color: "var(--danger-600)",
-      bg: "rgba(220,38,38,0.08)",
-    },
-  };
+const LABEL_COPY: Record<string, { label: string; color: string; bg: string }> = {
+  buy_now: {
+    label: 'Buy now',
+    color: 'var(--brand-700)',
+    bg: 'var(--brand-100)',
+  },
+  worth_watching: {
+    label: 'Watch',
+    color: 'var(--warning-500)',
+    bg: 'rgba(245,158,11,0.10)',
+  },
+  ask_questions: {
+    label: 'Ask first',
+    color: 'var(--fg-500)',
+    bg: 'rgba(10,26,18,0.06)',
+  },
+  skip: {
+    label: 'Skip',
+    color: 'var(--danger-600)',
+    bg: 'rgba(220,38,38,0.08)',
+  },
+};
 
 function AIAvatar() {
   return (
@@ -68,20 +67,11 @@ function AIAvatar() {
             <stop offset="100%" stopColor="#0a6f4f" />
           </linearGradient>
           <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-            <feDropShadow
-              dx="0"
-              dy="6"
-              stdDeviation="6"
-              floodColor="#081510"
-              floodOpacity="0.6"
-            />
+            <feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="#081510" floodOpacity="0.6" />
           </filter>
         </defs>
         <g>
-          <path
-            d="M 10 10 L 40 10 L 90 60 L 90 90 L 60 90 L 10 40 Z"
-            fill="url(#g-back-dark)"
-          />
+          <path d="M 10 10 L 40 10 L 90 60 L 90 90 L 60 90 L 10 40 Z" fill="url(#g-back-dark)" />
           <path
             d="M 10 90 L 40 90 L 90 40 L 90 10 L 60 10 L 10 60 Z"
             fill="url(#g-front)"
@@ -95,18 +85,18 @@ function AIAvatar() {
 
 function BriefProgress({ mission }: { mission: Mission }) {
   const fields: { label: string; value: string }[] = [];
-  if (mission.Name) fields.push({ label: "Mission", value: mission.Name });
+  if (mission.Name) fields.push({ label: 'Mission', value: mission.Name });
   if ((mission.BudgetMax ?? 0) > 0)
-    fields.push({ label: "Budget", value: `€${mission.BudgetMax}` });
+    fields.push({ label: 'Budget', value: `€${mission.BudgetMax}` });
   if (mission.PreferredCondition?.length)
     fields.push({
-      label: "Condition",
-      value: mission.PreferredCondition.join(", "),
+      label: 'Condition',
+      value: mission.PreferredCondition.join(', '),
     });
   if ((mission.SearchQueries?.length ?? 0) > 0)
     fields.push({
-      label: "Queries",
-      value: `${mission.SearchQueries!.length} search term${mission.SearchQueries!.length === 1 ? "" : "s"}`,
+      label: 'Queries',
+      value: `${mission.SearchQueries!.length} search term${mission.SearchQueries!.length === 1 ? '' : 's'}`,
     });
 
   if (fields.length === 0) return null;
@@ -129,32 +119,20 @@ function BriefProgress({ mission }: { mission: Mission }) {
 function RecCard({ rec }: { rec: Recommendation }) {
   const cfg = LABEL_COPY[rec.Label] ?? LABEL_COPY.skip;
   return (
-    <a
-      href={rec.Listing.URL || "#"}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="rec-card"
-    >
+    <a href={rec.Listing.URL || '#'} target="_blank" rel="noopener noreferrer" className="rec-card">
       <div className="rec-card-top">
         <span className="rec-card-title">{rec.Listing.Title}</span>
-        <span
-          className="rec-badge"
-          style={{ color: cfg.color, background: cfg.bg }}
-        >
+        <span className="rec-badge" style={{ color: cfg.color, background: cfg.bg }}>
           {cfg.label}
         </span>
       </div>
       <div className="rec-card-prices">
         <strong>{formatEuroFromCents(rec.Listing.Price)}</strong>
         {(rec.Scored?.FairPrice ?? 0) > 0 && (
-          <span className="rec-fair">
-            fair value {formatEuroFromCents(rec.Scored!.FairPrice)}
-          </span>
+          <span className="rec-fair">fair value {formatEuroFromCents(rec.Scored!.FairPrice)}</span>
         )}
         {(rec.SuggestedOffer ?? 0) > 0 && (
-          <span className="rec-offer">
-            offer {formatEuroFromCents(rec.SuggestedOffer!)}
-          </span>
+          <span className="rec-offer">offer {formatEuroFromCents(rec.SuggestedOffer!)}</span>
         )}
       </div>
       {rec.Verdict && <p className="rec-verdict">{rec.Verdict}</p>}
@@ -170,12 +148,12 @@ export function AssistantChat({
   embedded?: boolean;
   onMissionCreated?: (mission: Mission) => void;
 }) {
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
   const [history, setHistory] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [hydrating, setHydrating] = useState(true);
-  const [error, setError] = useState("");
-  const [draftHint, setDraftHint] = useState("");
+  const [error, setError] = useState('');
+  const [draftHint, setDraftHint] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -189,7 +167,7 @@ export function AssistantChat({
         if (res.session.LastAssistantMsg) {
           setHistory([
             {
-              role: "assistant",
+              role: 'assistant',
               text: res.session.LastAssistantMsg,
               mission: res.session.DraftMission,
             },
@@ -198,7 +176,7 @@ export function AssistantChat({
         if (res.session.DraftMission?.Name) {
           setDraftHint(`Resuming: ${res.session.DraftMission.Name}`);
         } else if (res.session.PendingQuestion) {
-          setDraftHint("Continuing your mission");
+          setDraftHint('Continuing your mission');
         }
       } catch {
         // Keep the assistant usable even if session hydration fails.
@@ -214,16 +192,16 @@ export function AssistantChat({
   }, []);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history, loading]);
 
   async function sendMessage() {
     const trimmed = message.trim();
     if (!trimmed || loading) return;
 
-    setError("");
-    setHistory((prev) => [...prev, { role: "user", text: trimmed }]);
-    setMessage("");
+    setError('');
+    setHistory((prev) => [...prev, { role: 'user', text: trimmed }]);
+    setMessage('');
     setLoading(true);
 
     try {
@@ -231,7 +209,7 @@ export function AssistantChat({
       setHistory((prev) => [
         ...prev,
         {
-          role: "assistant",
+          role: 'assistant',
           text: reply.Message,
           mission: reply.Mission,
           recommendations: reply.Recommendations,
@@ -244,15 +222,11 @@ export function AssistantChat({
         reply.Mission?.Name
           ? `Working mission: ${reply.Mission.Name}`
           : reply.Expecting
-            ? "Tell me more…"
-            : "",
+            ? 'Tell me more…'
+            : '',
       );
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong — try again.",
-      );
+      setError(err instanceof Error ? err.message : 'Something went wrong — try again.');
     } finally {
       setLoading(false);
       inputRef.current?.focus();
@@ -265,12 +239,12 @@ export function AssistantChat({
       <div className="assistant-header">
         <div>
           <p className="section-kicker">
-            {embedded ? "Describe your mission" : "AI buying assistant"}
+            {embedded ? 'Describe your mission' : 'AI buying assistant'}
           </p>
           <h2>
             {embedded
-              ? "Create a buy mission with natural language"
-              : "Your personal shopper, powered by AI"}
+              ? 'Create a buy mission with natural language'
+              : 'Your personal shopper, powered by AI'}
           </h2>
         </div>
         <div className="assistant-header-right">
@@ -279,7 +253,7 @@ export function AssistantChat({
             <Link
               href="/matches"
               className="btn-ghost"
-              style={{ fontSize: "0.84rem", minHeight: 36 }}
+              style={{ fontSize: '0.84rem', minHeight: 36 }}
             >
               View matches
             </Link>
@@ -300,11 +274,10 @@ export function AssistantChat({
               <div className="assistant-welcome">
                 <AIAvatar />
                 <div>
-                  <h3>Hi, I'm your personal buyer.</h3>
+                  <h3>Hi, I&apos;m your personal buyer.</h3>
                   <p>
-                    Tell me what you're after — item, budget, condition. I'll do
-                    the hunting and tell you which listings are actually worth
-                    your time.
+                    Tell me what you&apos;re after — item, budget, condition. I&apos;ll do the
+                    hunting and tell you which listings are actually worth your time.
                   </p>
                 </div>
               </div>
@@ -327,25 +300,18 @@ export function AssistantChat({
             </div>
           ) : (
             history.map((item, index) => (
-              <div
-                key={`${item.role}-${index}`}
-                className={`assistant-row ${item.role}`}
-              >
-                {item.role === "assistant" && <AIAvatar />}
+              <div key={`${item.role}-${index}`} className={`assistant-row ${item.role}`}>
+                {item.role === 'assistant' && <AIAvatar />}
                 <div className="assistant-bubble-group">
-                  <div className={`assistant-bubble ${item.role}`}>
-                    {item.text}
-                  </div>
+                  <div className={`assistant-bubble ${item.role}`}>{item.text}</div>
 
                   {/* Brief progress tracker */}
-                  {item.role === "assistant" &&
+                  {item.role === 'assistant' &&
                     item.mission &&
-                    (item.mission.BudgetMax ?? 0) > 0 && (
-                      <BriefProgress mission={item.mission} />
-                    )}
+                    (item.mission.BudgetMax ?? 0) > 0 && <BriefProgress mission={item.mission} />}
 
                   {/* Inline recommendation cards */}
-                  {item.role === "assistant" &&
+                  {item.role === 'assistant' &&
                     item.recommendations &&
                     item.recommendations.length > 0 && (
                       <>
@@ -355,14 +321,11 @@ export function AssistantChat({
                           ))}
                         </div>
                         <div className="chat-feed-cta">
-                          <p>
-                            Your monitors are scanning. New deals appear in real
-                            time.
-                          </p>
+                          <p>Your monitors are scanning. New deals appear in real time.</p>
                           <Link
                             href="/matches"
                             className="btn-primary"
-                            style={{ fontSize: "0.84rem" }}
+                            style={{ fontSize: '0.84rem' }}
                           >
                             Open matches
                           </Link>
@@ -397,7 +360,7 @@ export function AssistantChat({
             onChange={(e) => setMessage(e.target.value)}
             placeholder="What are you buying? Item, budget, condition…"
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
+              if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 void sendMessage();
               }
@@ -411,7 +374,7 @@ export function AssistantChat({
             onClick={() => void sendMessage()}
             disabled={loading || !message.trim()}
           >
-            {loading ? "Thinking…" : "Send"}
+            {loading ? 'Thinking…' : 'Send'}
           </button>
         </div>
       </div>

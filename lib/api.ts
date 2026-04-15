@@ -1,6 +1,6 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const ACCESS_TOKEN_KEY = "xolto_access_token";
-const REFRESH_TOKEN_KEY = "xolto_refresh_token";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const ACCESS_TOKEN_KEY = 'xolto_access_token';
+const REFRESH_TOKEN_KEY = 'xolto_refresh_token';
 
 export type User = {
   id: string;
@@ -67,10 +67,10 @@ export type Listing = {
   Confidence?: number;
   Reason?: string;
   RiskFlags?: string[];
-  Feedback?: "" | "approved" | "dismissed";
+  Feedback?: '' | 'approved' | 'dismissed';
 };
 
-export type MatchFeedbackAction = "approve" | "dismiss" | "clear";
+export type MatchFeedbackAction = 'approve' | 'dismiss' | 'clear';
 
 export type Mission = {
   ID?: number;
@@ -84,8 +84,8 @@ export type Mission = {
   RequiredFeatures?: string[];
   NiceToHave?: string[];
   SearchQueries?: string[];
-  Status?: "active" | "paused" | "completed";
-  Urgency?: "urgent" | "flexible" | "no-rush";
+  Status?: 'active' | 'paused' | 'completed';
+  Urgency?: 'urgent' | 'flexible' | 'no-rush';
   AvoidFlags?: string[];
   TravelRadius?: number;
   CountryCode?: string;
@@ -94,7 +94,7 @@ export type Mission = {
   PostalCode?: string;
   CrossBorderEnabled?: boolean;
   MarketplaceScope?: string[];
-  Category?: "phone" | "laptop" | "camera" | "other" | string;
+  Category?: 'phone' | 'laptop' | 'camera' | 'other' | string;
   Active?: boolean;
   MatchCount?: number;
   LastMatchAt?: string;
@@ -159,21 +159,26 @@ export type MarketplaceOption = {
 };
 
 export const SUPPORTED_COUNTRIES = [
-  { code: "NL", label: "Netherlands" },
-  { code: "BG", label: "Bulgaria" },
-  { code: "DK", label: "Denmark" },
+  { code: 'NL', label: 'Netherlands' },
+  { code: 'BG', label: 'Bulgaria' },
+  { code: 'DK', label: 'Denmark' },
 ] as const;
 
 export const MARKETPLACE_OPTIONS: MarketplaceOption[] = [
-  { id: "marktplaats", label: "Marktplaats", countryCode: "NL", providerFamily: "marktplaats" },
-  { id: "vinted_nl", label: "Vinted NL", countryCode: "NL", providerFamily: "vinted" },
-  { id: "olxbg", label: "OLX BG", countryCode: "BG", providerFamily: "olx" },
-  { id: "vinted_dk", label: "Vinted DK", countryCode: "DK", providerFamily: "vinted" },
+  { id: 'marktplaats', label: 'Marktplaats', countryCode: 'NL', providerFamily: 'marktplaats' },
+  { id: 'vinted_nl', label: 'Vinted NL', countryCode: 'NL', providerFamily: 'vinted' },
+  { id: 'olxbg', label: 'OLX BG', countryCode: 'BG', providerFamily: 'olx' },
+  { id: 'vinted_dk', label: 'Vinted DK', countryCode: 'DK', providerFamily: 'vinted' },
 ];
 
-export function marketplaceCandidates(countryCode?: string, crossBorder = false): MarketplaceOption[] {
+export function marketplaceCandidates(
+  countryCode?: string,
+  crossBorder = false,
+): MarketplaceOption[] {
   if (crossBorder) return MARKETPLACE_OPTIONS;
-  return MARKETPLACE_OPTIONS.filter((marketplace) => marketplace.countryCode === (countryCode || "").toUpperCase());
+  return MARKETPLACE_OPTIONS.filter(
+    (marketplace) => marketplace.countryCode === (countryCode || '').toUpperCase(),
+  );
 }
 
 type ErrorPayload = {
@@ -183,12 +188,12 @@ type ErrorPayload = {
 };
 
 function canUseStorage() {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+  return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 }
 
 export function getToken(): string {
-  if (!canUseStorage()) return "";
-  return window.localStorage.getItem(ACCESS_TOKEN_KEY) || "";
+  if (!canUseStorage()) return '';
+  return window.localStorage.getItem(ACCESS_TOKEN_KEY) || '';
 }
 
 export function setToken(token: string) {
@@ -207,8 +212,8 @@ export function clearToken() {
 }
 
 function getRefreshToken(): string {
-  if (!canUseStorage()) return "";
-  return window.localStorage.getItem(REFRESH_TOKEN_KEY) || "";
+  if (!canUseStorage()) return '';
+  return window.localStorage.getItem(REFRESH_TOKEN_KEY) || '';
 }
 
 function setRefreshToken(token: string) {
@@ -222,9 +227,9 @@ function setRefreshToken(token: string) {
 
 async function normalizeApiError(res: Response): Promise<string> {
   const fallback = `Request failed (${res.status})`;
-  const contentType = res.headers.get("content-type") || "";
+  const contentType = res.headers.get('content-type') || '';
 
-  if (contentType.includes("application/json")) {
+  if (contentType.includes('application/json')) {
     try {
       const payload = (await res.json()) as ErrorPayload;
       return payload.error || payload.message || payload.detail || fallback;
@@ -249,36 +254,44 @@ async function normalizeApiError(res: Response): Promise<string> {
 
 async function rawFetch(path: string, options?: RequestInit): Promise<Response> {
   const headers = new Headers(options?.headers || {});
-  if (!(options?.body instanceof FormData) && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
+  if (!(options?.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
   }
-  if (!headers.has("Authorization")) {
+  if (!headers.has('Authorization')) {
     const token = getToken();
     if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
+      headers.set('Authorization', `Bearer ${token}`);
     }
   }
-  if (path === "/auth/refresh" && !headers.has("X-Refresh-Token")) {
+  if (path === '/auth/refresh' && !headers.has('X-Refresh-Token')) {
     const refreshToken = getRefreshToken();
     if (refreshToken) {
-      headers.set("X-Refresh-Token", refreshToken);
+      headers.set('X-Refresh-Token', refreshToken);
     }
   }
 
   return fetch(`${API_BASE}${path}`, {
     ...options,
-    credentials: "include",
+    credentials: 'include',
     headers,
   });
 }
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   let res = await rawFetch(path, options);
-  if (res.status === 401 && path !== "/auth/refresh" && path !== "/auth/login" && path !== "/auth/register") {
-    const refreshRes = await rawFetch("/auth/refresh", { method: "POST" });
+  if (
+    res.status === 401 &&
+    path !== '/auth/refresh' &&
+    path !== '/auth/login' &&
+    path !== '/auth/register'
+  ) {
+    const refreshRes = await rawFetch('/auth/refresh', { method: 'POST' });
     if (refreshRes.ok) {
       try {
-        const payload = (await refreshRes.clone().json()) as { access_token?: string; refresh_token?: string };
+        const payload = (await refreshRes.clone().json()) as {
+          access_token?: string;
+          refresh_token?: string;
+        };
         if (payload.access_token) setToken(payload.access_token);
         if (payload.refresh_token) setRefreshToken(payload.refresh_token);
       } catch {
@@ -297,72 +310,84 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
 
 export const api = {
   auth: {
-    providers: async () => apiFetch<AuthProviders>("/auth/providers"),
-    googleStart: (returnTo = "/missions") =>
+    providers: async () => apiFetch<AuthProviders>('/auth/providers'),
+    googleStart: (returnTo = '/missions') =>
       `${API_BASE}/auth/google/start?return_to=${encodeURIComponent(returnTo)}`,
     login: async (email: string, password: string) => {
-      const response = await apiFetch<{ access_token: string; refresh_token?: string; user: User }>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await apiFetch<{ access_token: string; refresh_token?: string; user: User }>(
+        '/auth/login',
+        {
+          method: 'POST',
+          body: JSON.stringify({ email, password }),
+        },
+      );
       setToken(response.access_token);
       if (response.refresh_token) setRefreshToken(response.refresh_token);
       return response;
     },
     register: async (email: string, password: string, name: string) => {
-      const response = await apiFetch<{ access_token: string; refresh_token?: string; user: User }>("/auth/register", {
-        method: "POST",
-        body: JSON.stringify({ email, password, name }),
-      });
+      const response = await apiFetch<{ access_token: string; refresh_token?: string; user: User }>(
+        '/auth/register',
+        {
+          method: 'POST',
+          body: JSON.stringify({ email, password, name }),
+        },
+      );
       setToken(response.access_token);
       if (response.refresh_token) setRefreshToken(response.refresh_token);
       return response;
     },
-    me: async () => apiFetch<User>("/users/me"),
+    me: async () => apiFetch<User>('/users/me'),
     refresh: async () => {
-      const response = await apiFetch<{ access_token: string; refresh_token?: string; user: User }>("/auth/refresh", { method: "POST" });
+      const response = await apiFetch<{ access_token: string; refresh_token?: string; user: User }>(
+        '/auth/refresh',
+        { method: 'POST' },
+      );
       setToken(response.access_token);
       if (response.refresh_token) setRefreshToken(response.refresh_token);
       return response;
     },
     logout: async () => {
-      const response = await apiFetch<{ ok: boolean }>("/auth/logout", { method: "POST" });
+      const response = await apiFetch<{ ok: boolean }>('/auth/logout', { method: 'POST' });
       clearToken();
       return response;
     },
   },
   users: {
     update: async (user: Partial<User>) =>
-      apiFetch<User>("/users/me", { method: "PUT", body: JSON.stringify(user) }),
+      apiFetch<User>('/users/me', { method: 'PUT', body: JSON.stringify(user) }),
   },
   searches: {
-    list: async () => apiFetch<{ searches: SearchSpec[] }>("/searches"),
+    list: async () => apiFetch<{ searches: SearchSpec[] }>('/searches'),
     create: async (spec: Partial<SearchSpec>) =>
-      apiFetch<SearchSpec>("/searches", { method: "POST", body: JSON.stringify(spec) }),
+      apiFetch<SearchSpec>('/searches', { method: 'POST', body: JSON.stringify(spec) }),
     update: async (id: number, spec: Partial<SearchSpec>) =>
-      apiFetch<{ ok: boolean }>(`/searches/${id}`, { method: "PUT", body: JSON.stringify(spec) }),
+      apiFetch<{ ok: boolean }>(`/searches/${id}`, { method: 'PUT', body: JSON.stringify(spec) }),
     delete: async (id: number) =>
-      apiFetch<{ ok: boolean }>(`/searches/${id}`, { method: "DELETE" }),
+      apiFetch<{ ok: boolean }>(`/searches/${id}`, { method: 'DELETE' }),
     run: async (id: number) =>
-      apiFetch<{ ok: boolean; message: string }>(`/searches/${id}/run`, { method: "POST" }),
+      apiFetch<{ ok: boolean; message: string }>(`/searches/${id}/run`, { method: 'POST' }),
     runAll: async () =>
-      apiFetch<{ ok: boolean; message: string }>("/searches/run", { method: "POST" }),
+      apiFetch<{ ok: boolean; message: string }>('/searches/run', { method: 'POST' }),
     generate: async (topic: string) =>
-      apiFetch<{ searches: Array<Record<string, unknown>>; warning?: string }>("/searches/generate", {
-        method: "POST",
-        body: JSON.stringify({ topic }),
-      }),
+      apiFetch<{ searches: Array<Record<string, unknown>>; warning?: string }>(
+        '/searches/generate',
+        {
+          method: 'POST',
+          body: JSON.stringify({ topic }),
+        },
+      ),
   },
   listings: {
     feed: async (missionID?: number) => {
-      const query = missionID && missionID > 0 ? `?mission_id=${missionID}` : "";
+      const query = missionID && missionID > 0 ? `?mission_id=${missionID}` : '';
       return apiFetch<{ listings: Listing[]; user_id: string }>(`/listings/feed${query}`);
     },
   },
   matches: {
     feedback: async (itemID: string, action: MatchFeedbackAction) =>
-      apiFetch<{ ok: boolean; feedback: string }>("/matches/feedback", {
-        method: "POST",
+      apiFetch<{ ok: boolean; feedback: string }>('/matches/feedback', {
+        method: 'POST',
         body: JSON.stringify({ item_id: itemID, action }),
       }),
     analyze: async (url: string, missionID?: number) =>
@@ -370,58 +395,70 @@ export const api = {
         listing: Listing;
         reasoning_source: string;
         search_advice: string;
-        comparables?: Array<{ ItemID: string; Title: string; Price: number; Similarity: number; MatchReason: string }>;
+        comparables?: Array<{
+          ItemID: string;
+          Title: string;
+          Price: number;
+          Similarity: number;
+          MatchReason: string;
+        }>;
         market_average: number;
-      }>("/matches/analyze", {
-        method: "POST",
+      }>('/matches/analyze', {
+        method: 'POST',
         body: JSON.stringify({ url, mission_id: missionID && missionID > 0 ? missionID : 0 }),
       }),
   },
   missions: {
-    list: async () => apiFetch<{ missions: Mission[] }>("/missions"),
+    list: async () => apiFetch<{ missions: Mission[] }>('/missions'),
     create: async (mission: Partial<Mission>) =>
-      apiFetch<Mission>("/missions", { method: "POST", body: JSON.stringify(mission) }),
+      apiFetch<Mission>('/missions', { method: 'POST', body: JSON.stringify(mission) }),
     get: async (id: number) => apiFetch<Mission>(`/missions/${id}`),
     update: async (id: number, mission: Partial<Mission>) =>
-      apiFetch<Mission>(`/missions/${id}`, { method: "PUT", body: JSON.stringify(mission) }),
-    updateStatus: async (id: number, status: "active" | "paused" | "completed") =>
-      apiFetch<Mission>(`/missions/${id}/status`, { method: "PUT", body: JSON.stringify({ status }) }),
+      apiFetch<Mission>(`/missions/${id}`, { method: 'PUT', body: JSON.stringify(mission) }),
+    updateStatus: async (id: number, status: 'active' | 'paused' | 'completed') =>
+      apiFetch<Mission>(`/missions/${id}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status }),
+      }),
     delete: async (id: number) =>
-      apiFetch<{ ok: boolean }>(`/missions/${id}`, { method: "DELETE" }),
+      apiFetch<{ ok: boolean }>(`/missions/${id}`, { method: 'DELETE' }),
     matches: async (id: number, params?: { limit?: number }) => {
-      const limit = params?.limit ? `?limit=${params.limit}` : "";
+      const limit = params?.limit ? `?limit=${params.limit}` : '';
       return apiFetch<{ mission: Mission; listings: Listing[] }>(`/missions/${id}/matches${limit}`);
     },
   },
   shortlist: {
-    get: async () => apiFetch<{ shortlist: ShortlistEntry[] }>("/shortlist"),
-    add: async (itemID: string) => apiFetch<ShortlistEntry>(`/shortlist/${itemID}`, { method: "POST" }),
-    remove: async (itemID: string) => apiFetch<{ ok: boolean }>(`/shortlist/${itemID}`, { method: "DELETE" }),
+    get: async () => apiFetch<{ shortlist: ShortlistEntry[] }>('/shortlist'),
+    add: async (itemID: string) =>
+      apiFetch<ShortlistEntry>(`/shortlist/${itemID}`, { method: 'POST' }),
+    remove: async (itemID: string) =>
+      apiFetch<{ ok: boolean }>(`/shortlist/${itemID}`, { method: 'DELETE' }),
     draftOffer: async (itemID: string) =>
-      apiFetch<{ Content: string; ItemID: string }>(`/shortlist/${encodeURIComponent(itemID)}/draft`, { method: "POST" }),
+      apiFetch<{ Content: string; ItemID: string }>(
+        `/shortlist/${encodeURIComponent(itemID)}/draft`,
+        { method: 'POST' },
+      ),
   },
   assistant: {
     converse: async (message: string) =>
-      apiFetch<AssistantReply>("/assistant/converse", {
-        method: "POST",
+      apiFetch<AssistantReply>('/assistant/converse', {
+        method: 'POST',
         body: JSON.stringify({ message }),
       }),
-    session: async () =>
-      apiFetch<{ session: AssistantSession | null }>("/assistant/session"),
+    session: async () => apiFetch<{ session: AssistantSession | null }>('/assistant/session'),
   },
   billing: {
     createCheckout: async (priceID: string) =>
-      apiFetch<{ url: string; id: string }>("/billing/checkout", {
-        method: "POST",
+      apiFetch<{ url: string; id: string }>('/billing/checkout', {
+        method: 'POST',
         body: JSON.stringify({ price_id: priceID }),
       }),
-    portal: async () => apiFetch<{ url: string }>("/billing/portal"),
+    portal: async () => apiFetch<{ url: string }>('/billing/portal'),
   },
   admin: {
     stats: async (days = 30) =>
       apiFetch<{ stats: AdminAIStats; days: number }>(`/admin/stats?days=${days}`),
-    users: async () =>
-      apiFetch<{ users: AdminUser[] }>("/admin/users"),
+    users: async () => apiFetch<{ users: AdminUser[] }>('/admin/users'),
     usage: async (days = 7) =>
       apiFetch<{ entries: AdminUsageEntry[]; days: number }>(`/admin/usage?days=${days}`),
   },

@@ -1,23 +1,27 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react';
 
-import { useDashboardContext } from "../../../components/DashboardContext";
-import { ShortlistTable } from "../../../components/ShortlistTable";
-import { api } from "../../../lib/api";
-import { formatEuroFromCents } from "../../../lib/format";
+import { useDashboardContext } from '../../../components/DashboardContext';
+import { ShortlistTable } from '../../../components/ShortlistTable';
+import { api } from '../../../lib/api';
+import { formatEuroFromCents } from '../../../lib/format';
 
 export default function SavedPage() {
   const { shortlist, removeFromShortlist } = useDashboardContext();
-  const [error, setError] = useState("");
-  const [draftStates, setDraftStates] = useState<Record<string, { loading: boolean; text: string | null }>>({});
+  const [error, setError] = useState('');
+  const [draftStates, setDraftStates] = useState<
+    Record<string, { loading: boolean; text: string | null }>
+  >({});
   const [comparisonMode, setComparisonMode] = useState(false);
   const [selectedIDs, setSelectedIDs] = useState<string[]>([]);
 
   const prioritizedShortlist = useMemo(() => {
     return [...shortlist].sort((a, b) => {
-      const aStrong = a.RecommendationLabel === "buy_now" || a.Verdict.toLowerCase().includes("strong buy");
-      const bStrong = b.RecommendationLabel === "buy_now" || b.Verdict.toLowerCase().includes("strong buy");
+      const aStrong =
+        a.RecommendationLabel === 'buy_now' || a.Verdict.toLowerCase().includes('strong buy');
+      const bStrong =
+        b.RecommendationLabel === 'buy_now' || b.Verdict.toLowerCase().includes('strong buy');
       if (aStrong === bStrong) return 0;
       return aStrong ? -1 : 1;
     });
@@ -34,18 +38,28 @@ export default function SavedPage() {
   }, 0);
 
   const buyNowCount = prioritizedShortlist.filter(
-    (item) => item.RecommendationLabel === "buy_now" || item.Verdict.toLowerCase().includes("strong buy"),
+    (item) =>
+      item.RecommendationLabel === 'buy_now' || item.Verdict.toLowerCase().includes('strong buy'),
   ).length;
 
   async function draftOffer(itemID: string) {
-    setDraftStates((prev) => ({ ...prev, [itemID]: { loading: true, text: prev[itemID]?.text ?? null } }));
-    setError("");
+    setDraftStates((prev) => ({
+      ...prev,
+      [itemID]: { loading: true, text: prev[itemID]?.text ?? null },
+    }));
+    setError('');
     try {
       const res = await api.shortlist.draftOffer(itemID);
-      setDraftStates((prev) => ({ ...prev, [itemID]: { loading: false, text: res.Content || "" } }));
+      setDraftStates((prev) => ({
+        ...prev,
+        [itemID]: { loading: false, text: res.Content || '' },
+      }));
     } catch (err) {
-      setDraftStates((prev) => ({ ...prev, [itemID]: { loading: false, text: prev[itemID]?.text ?? null } }));
-      setError(err instanceof Error ? err.message : "Failed to draft offer");
+      setDraftStates((prev) => ({
+        ...prev,
+        [itemID]: { loading: false, text: prev[itemID]?.text ?? null },
+      }));
+      setError(err instanceof Error ? err.message : 'Failed to draft offer');
     }
   }
 
@@ -64,7 +78,8 @@ export default function SavedPage() {
           <p className="section-kicker">Saved comparisons</p>
           <h2>Compare top candidates before messaging sellers</h2>
           <p className="hero-copy">
-            Switch between card view and side-by-side comparison mode. Select up to 4 listings for direct evaluation.
+            Switch between card view and side-by-side comparison mode. Select up to 4 listings for
+            direct evaluation.
           </p>
         </div>
         <div className="stats-row">
@@ -84,8 +99,12 @@ export default function SavedPage() {
               <strong>{formatEuroFromCents(totalOpportunity)}</strong>
             </div>
           )}
-          <button type="button" className="btn-secondary" onClick={() => setComparisonMode((v) => !v)}>
-            {comparisonMode ? "Card view" : "Comparison view"}
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setComparisonMode((v) => !v)}
+          >
+            {comparisonMode ? 'Card view' : 'Comparison view'}
           </button>
         </div>
       </section>
@@ -111,7 +130,7 @@ export default function SavedPage() {
             await removeFromShortlist(itemID);
             setSelectedIDs((prev) => prev.filter((id) => id !== itemID));
           } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to remove item");
+            setError(err instanceof Error ? err.message : 'Failed to remove item');
           }
         }}
       />

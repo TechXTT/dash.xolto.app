@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-import { api, SearchSpec } from "../lib/api";
-import { intervalMinutesToDurationNs, normalizeCheckIntervalMinutes } from "../lib/format";
+import { api, SearchSpec } from '../lib/api';
+import { intervalMinutesToDurationNs, normalizeCheckIntervalMinutes } from '../lib/format';
 
 const CONDITION_OPTIONS = [
-  { value: "new", label: "New" },
-  { value: "like_new", label: "Like new" },
-  { value: "good", label: "Good / Used" },
+  { value: 'new', label: 'New' },
+  { value: 'like_new', label: 'Like new' },
+  { value: 'good', label: 'Good / Used' },
 ];
 
 type Props = {
   initialValue?: Partial<SearchSpec>;
   onSaved?: (search: SearchSpec) => void;
   onCancel?: () => void;
-  mode?: "create" | "edit";
+  mode?: 'create' | 'edit';
   title?: string;
   description?: string;
 };
@@ -38,27 +38,27 @@ type DraftState = {
 };
 
 function readTemplateAttr(attrs: Record<string, string> | undefined, key: string) {
-  if (!attrs) return "";
-  return (attrs[key] || "").trim();
+  if (!attrs) return '';
+  return (attrs[key] || '').trim();
 }
 
 function draftFromSearch(search?: Partial<SearchSpec>): DraftState {
   const attrs = search?.Attributes;
   return {
-    name: search?.Name || "",
-    query: search?.Query || "",
-    marketplaceID: search?.MarketplaceID || "marktplaats",
-    maxPrice: search?.MaxPrice ? String(Math.round(search.MaxPrice / 100)) : "",
-    categoryID: search?.CategoryID ? String(search.CategoryID) : "",
+    name: search?.Name || '',
+    query: search?.Query || '',
+    marketplaceID: search?.MarketplaceID || 'marktplaats',
+    maxPrice: search?.MaxPrice ? String(Math.round(search.MaxPrice / 100)) : '',
+    categoryID: search?.CategoryID ? String(search.CategoryID) : '',
     checkInterval: String(normalizeCheckIntervalMinutes(search?.CheckInterval)),
     offerPercentage: String(search?.OfferPercentage || 72),
     enabled: search?.Enabled ?? true,
-    condition: search?.Condition?.length ? search.Condition : ["like_new", "good"],
-    messageTemplate: search?.MessageTemplate || "",
-    templateMarktplaats: readTemplateAttr(attrs, "message_template_marktplaats"),
-    templateVintedNL: readTemplateAttr(attrs, "message_template_vinted_nl"),
-    templateVintedDK: readTemplateAttr(attrs, "message_template_vinted_dk"),
-    templateOLXBG: readTemplateAttr(attrs, "message_template_olxbg"),
+    condition: search?.Condition?.length ? search.Condition : ['like_new', 'good'],
+    messageTemplate: search?.MessageTemplate || '',
+    templateMarktplaats: readTemplateAttr(attrs, 'message_template_marktplaats'),
+    templateVintedNL: readTemplateAttr(attrs, 'message_template_vinted_nl'),
+    templateVintedDK: readTemplateAttr(attrs, 'message_template_vinted_dk'),
+    templateOLXBG: readTemplateAttr(attrs, 'message_template_olxbg'),
   };
 }
 
@@ -66,17 +66,17 @@ export function SearchConfigForm({
   initialValue,
   onSaved,
   onCancel,
-  mode = "create",
+  mode = 'create',
   title,
   description,
 }: Props) {
   const [draft, setDraft] = useState<DraftState>(() => draftFromSearch(initialValue));
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setDraft(draftFromSearch(initialValue));
-    setError("");
+    setError('');
   }, [initialValue]);
 
   function toggleCondition(condition: string) {
@@ -90,7 +90,7 @@ export function SearchConfigForm({
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError("");
+    setError('');
     setSaving(true);
 
     const nextAttributes: Record<string, string> = { ...(initialValue?.Attributes || {}) };
@@ -125,7 +125,7 @@ export function SearchConfigForm({
     };
 
     try {
-      if (mode === "edit" && initialValue?.ID) {
+      if (mode === 'edit' && initialValue?.ID) {
         await api.searches.update(initialValue.ID, payload);
         onSaved?.({
           ...(initialValue as SearchSpec),
@@ -137,7 +137,7 @@ export function SearchConfigForm({
         onSaved?.(search);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save search");
+      setError(err instanceof Error ? err.message : 'Failed to save search');
     } finally {
       setSaving(false);
     }
@@ -147,8 +147,8 @@ export function SearchConfigForm({
     <div className="surface-panel form-panel">
       <div className="section-heading">
         <div>
-          <p className="section-kicker">{mode === "edit" ? "Tune search" : "Manual setup"}</p>
-          <h3>{title || (mode === "edit" ? "Edit saved search" : "Create a precise hunt")}</h3>
+          <p className="section-kicker">{mode === 'edit' ? 'Tune search' : 'Manual setup'}</p>
+          <h3>{title || (mode === 'edit' ? 'Edit saved search' : 'Create a precise hunt')}</h3>
         </div>
         {onCancel && (
           <button type="button" className="btn-ghost" onClick={onCancel}>
@@ -157,7 +157,8 @@ export function SearchConfigForm({
         )}
       </div>
       <p className="section-support">
-        {description || "Set the marketplace, budget, timing, and condition guardrails you want xolto to follow."}
+        {description ||
+          'Set the marketplace, budget, timing, and condition guardrails you want xolto to follow.'}
       </p>
 
       {error && <div className="error-msg">{error}</div>}
@@ -267,7 +268,9 @@ export function SearchConfigForm({
             max="95"
             step="1"
             value={draft.offerPercentage}
-            onChange={(e) => setDraft((current) => ({ ...current, offerPercentage: e.target.value }))}
+            onChange={(e) =>
+              setDraft((current) => ({ ...current, offerPercentage: e.target.value }))
+            }
           />
         </div>
 
@@ -280,7 +283,7 @@ export function SearchConfigForm({
                 <button
                   key={value}
                   type="button"
-                  className={`choice-pill${active ? " active" : ""}`}
+                  className={`choice-pill${active ? ' active' : ''}`}
                   onClick={() => toggleCondition(value)}
                 >
                   {label}
@@ -300,7 +303,9 @@ export function SearchConfigForm({
             rows={3}
             placeholder="Hi! I'm interested in {{.Title}}. Would you consider EUR {{.OfferPrice}}?"
             value={draft.messageTemplate}
-            onChange={(e) => setDraft((current) => ({ ...current, messageTemplate: e.target.value }))}
+            onChange={(e) =>
+              setDraft((current) => ({ ...current, messageTemplate: e.target.value }))
+            }
           />
           <p className="section-support">
             {`Template variables: {{.Title}}, {{.OfferPrice}}, {{.OfferPriceEuro}}, {{.AskPrice}}, {{.AskPriceEuro}}, {{.FairPriceEuro}}.`}
@@ -317,7 +322,9 @@ export function SearchConfigForm({
             rows={2}
             placeholder="Hoi! Ik heb interesse in {{.Title}}. Zou {{.OfferPriceEuro}} voor je werken?"
             value={draft.templateMarktplaats}
-            onChange={(e) => setDraft((current) => ({ ...current, templateMarktplaats: e.target.value }))}
+            onChange={(e) =>
+              setDraft((current) => ({ ...current, templateMarktplaats: e.target.value }))
+            }
           />
         </div>
 
@@ -345,7 +352,9 @@ export function SearchConfigForm({
             rows={2}
             placeholder="Hoi! Is {{.Title}} nog beschikbaar? Zou {{.OfferPriceEuro}} passen?"
             value={draft.templateVintedNL}
-            onChange={(e) => setDraft((current) => ({ ...current, templateVintedNL: e.target.value }))}
+            onChange={(e) =>
+              setDraft((current) => ({ ...current, templateVintedNL: e.target.value }))
+            }
           />
         </div>
 
@@ -359,7 +368,9 @@ export function SearchConfigForm({
             rows={2}
             placeholder="Hi! Is {{.Title}} still available? Would {{.OfferPriceEuro}} work?"
             value={draft.templateVintedDK}
-            onChange={(e) => setDraft((current) => ({ ...current, templateVintedDK: e.target.value }))}
+            onChange={(e) =>
+              setDraft((current) => ({ ...current, templateVintedDK: e.target.value }))
+            }
           />
         </div>
 
@@ -374,7 +385,7 @@ export function SearchConfigForm({
           </label>
 
           <button type="submit" disabled={saving} className="btn-primary">
-            {saving ? "Saving…" : mode === "edit" ? "Save changes" : "Save search"}
+            {saving ? 'Saving…' : mode === 'edit' ? 'Save changes' : 'Save search'}
           </button>
         </div>
       </form>

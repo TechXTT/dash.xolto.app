@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
-import { Listing } from "../lib/api";
-import { formatEuroFromCents } from "../lib/format";
+import { Listing } from '../lib/api';
+import { formatEuroFromCents } from '../lib/format';
 
 interface Props {
   listing: Listing;
@@ -16,53 +16,61 @@ interface Props {
 }
 
 const MARKETPLACE_LABELS: Record<string, string> = {
-  marktplaats: "Marktplaats",
-  vinted: "Vinted",
-  vinted_nl: "Vinted NL",
-  vinted_dk: "Vinted DK",
-  olxbg: "OLX BG",
+  marktplaats: 'Marktplaats',
+  vinted: 'Vinted',
+  vinted_nl: 'Vinted NL',
+  vinted_dk: 'Vinted DK',
+  olxbg: 'OLX BG',
 };
 
 const RISK_FLAG_LABELS: Record<string, string> = {
-  anomaly_price: "Anomaly price",
-  vague_condition: "Vague condition",
-  unclear_bundle: "Unclear bundle",
-  no_model_id: "No model identified",
-  missing_key_photos: "Too few photos",
-  no_battery_health: "Battery health missing",
-  refurbished_ambiguity: "Refurbished details unclear",
+  anomaly_price: 'Anomaly price',
+  vague_condition: 'Vague condition',
+  unclear_bundle: 'Unclear bundle',
+  no_model_id: 'No model identified',
+  missing_key_photos: 'Too few photos',
+  no_battery_health: 'Battery health missing',
+  refurbished_ambiguity: 'Refurbished details unclear',
 };
 
-const HARD_RISK_FLAGS = ["anomaly_price"] as const;
+const HARD_RISK_FLAGS = ['anomaly_price'] as const;
 const SOFT_RISK_FLAGS = [
-  "missing_key_photos",
-  "no_battery_health",
-  "vague_condition",
-  "unclear_bundle",
-  "no_model_id",
-  "refurbished_ambiguity",
+  'missing_key_photos',
+  'no_battery_health',
+  'vague_condition',
+  'unclear_bundle',
+  'no_model_id',
+  'refurbished_ambiguity',
 ] as const;
 const QUESTION_ORDER = [
-  "anomaly_price",
-  "vague_condition",
-  "no_battery_health",
-  "missing_key_photos",
-  "no_model_id",
-  "unclear_bundle",
-  "refurbished_ambiguity",
+  'anomaly_price',
+  'vague_condition',
+  'no_battery_health',
+  'missing_key_photos',
+  'no_model_id',
+  'unclear_bundle',
+  'refurbished_ambiguity',
 ] as const;
 
 const FLAG_TO_QUESTION: Record<string, string> = {
-  anomaly_price: "Why is this priced so far below market value?",
-  vague_condition: "Can you describe the exact condition in more detail?",
+  anomaly_price: 'Why is this priced so far below market value?',
+  vague_condition: 'Can you describe the exact condition in more detail?',
   no_battery_health: "What's the current battery health percentage?",
-  missing_key_photos: "Could you share close-up photos of the item?",
-  no_model_id: "Which exact model or variant is this?",
-  unclear_bundle: "What exactly is included in this bundle?",
-  refurbished_ambiguity: "Is this seller-refurbished or manufacturer-refurbished?",
+  missing_key_photos: 'Could you share close-up photos of the item?',
+  no_model_id: 'Which exact model or variant is this?',
+  unclear_bundle: 'What exactly is included in this bundle?',
+  refurbished_ambiguity: 'Is this seller-refurbished or manufacturer-refurbished?',
 };
 
-export function ListingCard({ listing, onShortlist, onDraftOffer, onApprove, onDismiss, draftState, isSaved = false }: Props) {
+export function ListingCard({
+  listing,
+  onShortlist,
+  onDraftOffer,
+  onApprove,
+  onDismiss,
+  draftState,
+  isSaved = false,
+}: Props) {
   const item = listing;
   const score = (listing.Score ?? 0) > 0 ? listing.Score : undefined;
   const fairPrice = (listing.FairPrice ?? 0) > 0 ? listing.FairPrice : undefined;
@@ -71,7 +79,7 @@ export function ListingCard({ listing, onShortlist, onDraftOffer, onApprove, onD
   const verdict = verdictLabel(score, listing.RiskFlags ?? []);
   const confidenceLabel = confidenceCopy(confidence);
   const suggestedQuestion = firstSuggestedQuestion(listing.RiskFlags ?? []);
-  const feedback = listing.Feedback ?? "";
+  const feedback = listing.Feedback ?? '';
 
   const [saving, setSaving] = useState(false);
   const [feedbackPending, setFeedbackPending] = useState(false);
@@ -92,7 +100,7 @@ export function ListingCard({ listing, onShortlist, onDraftOffer, onApprove, onD
   }
 
   async function handleApprove() {
-    if (!onApprove || feedbackPending || feedback === "approved") return;
+    if (!onApprove || feedbackPending || feedback === 'approved') return;
     setFeedbackPending(true);
     try {
       await onApprove(item.ItemID);
@@ -119,7 +127,16 @@ export function ListingCard({ listing, onShortlist, onDraftOffer, onApprove, onD
           <img src={item.ImageURLs[0]} alt={item.Title} className="listing-image" />
         ) : (
           <div className="listing-image listing-image-fallback">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--brand-600)" strokeWidth="1.5" strokeLinecap="round" opacity="0.5">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--brand-600)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              opacity="0.5"
+            >
               <rect x="3" y="3" width="18" height="18" rx="3" />
               <circle cx="8.5" cy="8.5" r="1.5" />
               <path d="M21 15l-5-5L5 21" />
@@ -133,39 +150,44 @@ export function ListingCard({ listing, onShortlist, onDraftOffer, onApprove, onD
           <div className="listing-copy">
             <div className="listing-meta-row">
               {item.MarketplaceID && (
-                <span className="market-badge">{MARKETPLACE_LABELS[item.MarketplaceID] || item.MarketplaceID}</span>
+                <span className="market-badge">
+                  {MARKETPLACE_LABELS[item.MarketplaceID] || item.MarketplaceID}
+                </span>
               )}
               {item.Condition && <span className="subtle-pill">{item.Condition}</span>}
             </div>
-            <a href={item.URL || "#"} target="_blank" rel="noopener noreferrer" className="listing-title">
+            <a
+              href={item.URL || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="listing-title"
+            >
               {item.Title}
             </a>
             <div className="listing-meta-row" style={{ marginTop: 8 }}>
               <span className="subtle-pill">{verdict}</span>
               {score !== undefined && <span className="subtle-pill">Score {score.toFixed(1)}</span>}
               <span className="subtle-pill">{confidenceLabel}</span>
-              {feedback === "approved" && <span className="approved-badge">Approved</span>}
+              {feedback === 'approved' && <span className="approved-badge">Approved</span>}
             </div>
           </div>
 
           {onShortlist && (
             <button
               type="button"
-              className={`save-chip${isSaved ? " saved" : ""}`}
+              className={`save-chip${isSaved ? ' saved' : ''}`}
               onClick={handleShortlist}
               disabled={saving || isSaved}
             >
-              {isSaved ? "Saved" : saving ? "Saving…" : "Save"}
+              {isSaved ? 'Saved' : saving ? 'Saving…' : 'Save'}
             </button>
           )}
         </div>
 
         <div className="listing-price-row">
-          <span className="listing-price">
-            Ask: {formatEuroFromCents(item.Price)}
-          </span>
+          <span className="listing-price">Ask: {formatEuroFromCents(item.Price)}</span>
           <span className="price-caption">
-            Fair: {fairPrice ? formatEuroFromCents(fairPrice) : "Unknown"}
+            Fair: {fairPrice ? formatEuroFromCents(fairPrice) : 'Unknown'}
           </span>
         </div>
 
@@ -187,19 +209,24 @@ export function ListingCard({ listing, onShortlist, onDraftOffer, onApprove, onD
             </a>
           )}
           {onDraftOffer && (
-            <button type="button" className="btn-primary" onClick={() => void handleDraftOffer()} disabled={draftState?.loading}>
-              {draftState?.loading ? "Drafting..." : "Draft seller note"}
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => void handleDraftOffer()}
+              disabled={draftState?.loading}
+            >
+              {draftState?.loading ? 'Drafting...' : 'Draft seller note'}
             </button>
           )}
           {onApprove && (
             <button
               type="button"
-              className={`btn-approve${feedback === "approved" ? " active" : ""}`}
+              className={`btn-approve${feedback === 'approved' ? ' active' : ''}`}
               onClick={() => void handleApprove()}
-              disabled={feedbackPending || feedback === "approved"}
+              disabled={feedbackPending || feedback === 'approved'}
               title="Approve this match — future matches will lean on it as a ground-truth example"
             >
-              {feedback === "approved" ? "✓ Approved" : "Approve"}
+              {feedback === 'approved' ? '✓ Approved' : 'Approve'}
             </button>
           )}
           {onDismiss && (
@@ -236,20 +263,20 @@ export function ListingCard({ listing, onShortlist, onDraftOffer, onApprove, onD
 
 function verdictLabel(score: number | undefined, riskFlags: string[]) {
   if (hasHardRiskFlag(riskFlags)) {
-    return "Suspicious";
+    return 'Suspicious';
   }
-  if (!score) return "Fair price";
-  if (score >= 8) return "Strong buy";
-  if (score >= 7) return "Good deal";
-  if (score >= 5.5) return "Fair price";
-  if (score >= 4) return "Overpriced";
-  return "Suspicious";
+  if (!score) return 'Fair price';
+  if (score >= 8) return 'Strong buy';
+  if (score >= 7) return 'Good deal';
+  if (score >= 5.5) return 'Fair price';
+  if (score >= 4) return 'Overpriced';
+  return 'Suspicious';
 }
 
 function confidenceCopy(confidence: number) {
-  if (confidence >= 0.75) return "High confidence";
-  if (confidence >= 0.4) return "Medium confidence";
-  return "Low confidence";
+  if (confidence >= 0.75) return 'High confidence';
+  if (confidence >= 0.4) return 'Medium confidence';
+  return 'Low confidence';
 }
 
 function firstSuggestedQuestion(riskFlags: string[]) {
@@ -259,9 +286,9 @@ function firstSuggestedQuestion(riskFlags: string[]) {
     }
   }
   if (hasSoftRiskFlag(riskFlags)) {
-    return "Can you confirm condition and included accessories?";
+    return 'Can you confirm condition and included accessories?';
   }
-  return "Can you confirm condition and included accessories?";
+  return 'Can you confirm condition and included accessories?';
 }
 
 function hasHardRiskFlag(riskFlags: string[]) {

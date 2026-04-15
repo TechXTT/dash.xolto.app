@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-const STORAGE_KEY = "xolto_onboarding_completed";
+const STORAGE_KEY = 'xolto_onboarding_completed';
 
 interface Step {
   title: string;
@@ -12,7 +12,7 @@ interface Step {
 
 const STEPS: Step[] = [
   {
-    title: "Welcome to xolto",
+    title: 'Welcome to xolto',
     description:
       "Your AI-powered copilot for buying used electronics. We'll walk you through the core workflow so you can start finding deals in minutes.",
     icon: (
@@ -37,21 +37,12 @@ const STEPS: Step[] = [
             <stop offset="100%" stopColor="#0a6f4f" />
           </linearGradient>
           <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-            <feDropShadow
-              dx="0"
-              dy="6"
-              stdDeviation="6"
-              floodColor="#081510"
-              floodOpacity="0.6"
-            />
+            <feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="#081510" floodOpacity="0.6" />
           </filter>
           <style>{`.text { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 800; font-size: 76px; letter-spacing: -0.04em; fill: #ffffff; }`}</style>
         </defs>
         <g>
-          <path
-            d="M 10 10 L 40 10 L 90 60 L 90 90 L 60 90 L 10 40 Z"
-            fill="url(#g-back-dark)"
-          />
+          <path d="M 10 10 L 40 10 L 90 60 L 90 90 L 60 90 L 10 40 Z" fill="url(#g-back-dark)" />
           <path
             d="M 10 90 L 40 90 L 90 40 L 90 10 L 60 10 L 10 60 Z"
             fill="url(#g-front)"
@@ -65,7 +56,7 @@ const STEPS: Step[] = [
     ),
   },
   {
-    title: "Create a Mission",
+    title: 'Create a Mission',
     description:
       "Start by defining what you're looking for — device type, budget, condition, and must-have features. You can use the structured form or just describe it in plain language.",
     icon: (
@@ -82,9 +73,9 @@ const STEPS: Step[] = [
     ),
   },
   {
-    title: "Review Matches",
+    title: 'Review Matches',
     description:
-      "xolto continuously scans marketplaces for listings that fit your mission. Each match gets an AI-generated score, fair price estimate, and risk flags so you can spot the best deals instantly.",
+      'xolto continuously scans marketplaces for listings that fit your mission. Each match gets an AI-generated score, fair price estimate, and risk flags so you can spot the best deals instantly.',
     icon: (
       <svg
         width="32"
@@ -102,9 +93,9 @@ const STEPS: Step[] = [
     ),
   },
   {
-    title: "Save & Compare",
+    title: 'Save & Compare',
     description:
-      "Shortlist your top picks and compare them side by side — asking price, fair value, suggested offer, risk concerns, and a clear verdict for each listing.",
+      'Shortlist your top picks and compare them side by side — asking price, fair value, suggested offer, risk concerns, and a clear verdict for each listing.',
     icon: (
       <svg
         width="32"
@@ -122,7 +113,7 @@ const STEPS: Step[] = [
   {
     title: "You're all set",
     description:
-      "Create your first mission and let xolto do the heavy lifting. The AI keeps hunting 24/7 so you never miss a deal.",
+      'Create your first mission and let xolto do the heavy lifting. The AI keeps hunting 24/7 so you never miss a deal.',
     icon: (
       <svg
         width="32"
@@ -146,7 +137,7 @@ export function OnboardingOverlay({ onComplete }: { onComplete: () => void }) {
 
   function finish() {
     setExiting(true);
-    localStorage.setItem(STORAGE_KEY, "1");
+    localStorage.setItem(STORAGE_KEY, '1');
     setTimeout(onComplete, 340);
   }
 
@@ -168,12 +159,12 @@ export function OnboardingOverlay({ onComplete }: { onComplete: () => void }) {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "ArrowRight" || e.key === "Enter") next();
-      if (e.key === "ArrowLeft") prev();
-      if (e.key === "Escape") skip();
+      if (e.key === 'ArrowRight' || e.key === 'Enter') next();
+      if (e.key === 'ArrowLeft') prev();
+      if (e.key === 'Escape') skip();
     }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
@@ -181,7 +172,7 @@ export function OnboardingOverlay({ onComplete }: { onComplete: () => void }) {
   const isLast = step === STEPS.length - 1;
 
   return (
-    <div className={`onboarding-backdrop${exiting ? " exit" : ""}`}>
+    <div className={`onboarding-backdrop${exiting ? ' exit' : ''}`}>
       <div className="onboarding-card" key={step}>
         <div className="onboarding-icon">{current.icon}</div>
 
@@ -189,7 +180,7 @@ export function OnboardingOverlay({ onComplete }: { onComplete: () => void }) {
           {STEPS.map((_, i) => (
             <span
               key={i}
-              className={`onboarding-dot${i === step ? " active" : ""}${i < step ? " done" : ""}`}
+              className={`onboarding-dot${i === step ? ' active' : ''}${i < step ? ' done' : ''}`}
             />
           ))}
         </div>
@@ -210,7 +201,7 @@ export function OnboardingOverlay({ onComplete }: { onComplete: () => void }) {
             </button>
           )}
           <button type="button" className="btn-primary" onClick={next}>
-            {isLast ? "Get started" : "Next"}
+            {isLast ? 'Get started' : 'Next'}
           </button>
         </div>
       </div>
@@ -219,6 +210,6 @@ export function OnboardingOverlay({ onComplete }: { onComplete: () => void }) {
 }
 
 export function shouldShowOnboarding(): boolean {
-  if (typeof window === "undefined") return false;
-  return localStorage.getItem(STORAGE_KEY) !== "1";
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(STORAGE_KEY) !== '1';
 }

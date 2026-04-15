@@ -1,17 +1,14 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import type { ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 
-import { DashboardProvider } from "../../components/DashboardContext";
-import { LocationSetupOverlay } from "../../components/LocationSetupOverlay";
-import {
-  OnboardingOverlay,
-  shouldShowOnboarding,
-} from "../../components/OnboardingOverlay";
-import { api, Mission, ShortlistEntry, User } from "../../lib/api";
+import { DashboardProvider } from '../../components/DashboardContext';
+import { LocationSetupOverlay } from '../../components/LocationSetupOverlay';
+import { OnboardingOverlay, shouldShowOnboarding } from '../../components/OnboardingOverlay';
+import { api, Mission, ShortlistEntry, User } from '../../lib/api';
 
 function IconAI() {
   return (
@@ -105,57 +102,53 @@ function IconAdmin() {
 
 const NAV = [
   {
-    href: "/missions",
-    label: "Missions",
-    description: "Define what to buy",
+    href: '/missions',
+    label: 'Missions',
+    description: 'Define what to buy',
     Icon: IconAI,
   },
   {
-    href: "/matches",
-    label: "Matches",
-    description: "Mission-scoped deals",
+    href: '/matches',
+    label: 'Matches',
+    description: 'Mission-scoped deals',
     Icon: IconRadar,
   },
   {
-    href: "/saved",
-    label: "Saved",
-    description: "Compare top picks",
+    href: '/saved',
+    label: 'Saved',
+    description: 'Compare top picks',
     Icon: IconSaved,
   },
   {
-    href: "/settings",
-    label: "Settings",
-    description: "Account and billing",
+    href: '/settings',
+    label: 'Settings',
+    description: 'Account and billing',
     Icon: IconSettings,
   },
 ];
 
 const ADMIN_NAV = {
-  href: "/admin",
-  label: "Admin",
-  description: "Usage & users",
+  href: '/admin',
+  label: 'Admin',
+  description: 'Usage & users',
   Icon: IconAdmin,
 };
 
 function initialsForUser(user: User | null) {
-  if (!user?.name) return user?.email.slice(0, 1).toUpperCase() || "?";
+  if (!user?.name) return user?.email.slice(0, 1).toUpperCase() || '?';
   return user.name
-    .split(" ")
+    .split(' ')
     .map((part) => part[0])
-    .join("")
+    .join('')
     .slice(0, 2)
     .toUpperCase();
 }
 
 function normalizeShortlist(items: ShortlistEntry[]) {
-  return items.filter((item) => item.Status !== "removed");
+  return items.filter((item) => item.Status !== 'removed');
 }
 
-function resolveActiveMissionID(
-  missions: Mission[],
-  currentID: number,
-  fallbackStoredID = 0,
-) {
+function resolveActiveMissionID(missions: Mission[], currentID: number, fallbackStoredID = 0) {
   if (missions.length === 0) return 0;
   const preferred = currentID > 0 ? currentID : fallbackStoredID;
   if (preferred > 0 && missions.some((mission) => mission.ID === preferred)) {
@@ -176,8 +169,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const raw = window.localStorage.getItem("xolto_active_mission_id");
+    if (typeof window === 'undefined') return;
+    const raw = window.localStorage.getItem('xolto_active_mission_id');
     if (!raw) return;
     const parsed = Number(raw);
     if (Number.isFinite(parsed) && parsed > 0) {
@@ -186,14 +179,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
     if (activeMissionId > 0) {
-      window.localStorage.setItem(
-        "xolto_active_mission_id",
-        String(activeMissionId),
-      );
+      window.localStorage.setItem('xolto_active_mission_id', String(activeMissionId));
     } else {
-      window.localStorage.removeItem("xolto_active_mission_id");
+      window.localStorage.removeItem('xolto_active_mission_id');
     }
   }, [activeMissionId]);
 
@@ -205,9 +195,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       try {
         const [me, shortlistRes, missionsRes] = await Promise.all([
           api.auth.me(),
-          api.shortlist
-            .get()
-            .catch(() => ({ shortlist: [] as ShortlistEntry[] })),
+          api.shortlist.get().catch(() => ({ shortlist: [] as ShortlistEntry[] })),
           api.missions.list().catch(() => ({ missions: [] as Mission[] })),
         ]);
         if (cancelled) return;
@@ -215,42 +203,36 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         setUser(me);
         setShowLocationSetup(!me.country_code);
         setShortlist(normalizeShortlist(shortlistRes.shortlist));
-        const loadedMissions = Array.isArray(missionsRes.missions)
-          ? missionsRes.missions
-          : [];
+        const loadedMissions = Array.isArray(missionsRes.missions) ? missionsRes.missions : [];
         setMissions(loadedMissions);
         const storedMissionRaw =
-          typeof window !== "undefined"
-            ? window.localStorage.getItem("xolto_active_mission_id")
-            : "";
+          typeof window !== 'undefined'
+            ? window.localStorage.getItem('xolto_active_mission_id')
+            : '';
         const storedMissionID = Number(storedMissionRaw);
         setActiveMissionId((current) =>
           resolveActiveMissionID(
             loadedMissions,
             current,
-            Number.isFinite(storedMissionID) && storedMissionID > 0
-              ? storedMissionID
-              : 0,
+            Number.isFinite(storedMissionID) && storedMissionID > 0 ? storedMissionID : 0,
           ),
         );
       } catch (err) {
         if (!cancelled) {
-          const msg = err instanceof Error ? err.message : "";
+          const msg = err instanceof Error ? err.message : '';
           if (
-            msg.includes("401") ||
-            msg.toLowerCase().includes("unauthorized") ||
-            msg.toLowerCase().includes("missing") ||
-            msg.toLowerCase().includes("invalid token")
+            msg.includes('401') ||
+            msg.toLowerCase().includes('unauthorized') ||
+            msg.toLowerCase().includes('missing') ||
+            msg.toLowerCase().includes('invalid token')
           ) {
-            window.location.replace("/login");
+            window.location.replace('/login');
           }
         }
       } finally {
         if (!cancelled) {
           setLoading(false);
-          setShowOnboarding(
-            Boolean(bootUser?.country_code) && shouldShowOnboarding(),
-          );
+          setShowOnboarding(Boolean(bootUser?.country_code) && shouldShowOnboarding());
         }
       }
     }
@@ -289,10 +271,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     if (shortlistIDs.has(itemID)) return;
     const entry = await api.shortlist.add(itemID);
     setShortlist((prev) =>
-      normalizeShortlist([
-        entry,
-        ...prev.filter((item) => item.ItemID !== itemID),
-      ]),
+      normalizeShortlist([entry, ...prev.filter((item) => item.ItemID !== itemID)]),
     );
   }
 
@@ -303,9 +282,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const allNav = user?.is_admin ? [...NAV, ADMIN_NAV] : NAV;
   const currentNav =
-    allNav.find(
-      (item) => pathname === item.href || pathname?.startsWith(`${item.href}/`),
-    ) ?? NAV[0];
+    allNav.find((item) => pathname === item.href || pathname?.startsWith(`${item.href}/`)) ??
+    NAV[0];
 
   if (loading) {
     return (
@@ -324,8 +302,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         setUser,
         missions,
         activeMissionId,
-        setActiveMission: (missionID: number) =>
-          setActiveMissionId(missionID > 0 ? missionID : 0),
+        setActiveMission: (missionID: number) => setActiveMissionId(missionID > 0 ? missionID : 0),
         refreshMissions,
         shortlist,
         shortlistIDs,
@@ -345,9 +322,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           }}
         />
       )}
-      {showOnboarding && (
-        <OnboardingOverlay onComplete={() => setShowOnboarding(false)} />
-      )}
+      {showOnboarding && <OnboardingOverlay onComplete={() => setShowOnboarding(false)} />}
       <div className="app-shell">
         {menuOpen && (
           <button
@@ -358,7 +333,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           />
         )}
 
-        <aside className={`app-sidebar${menuOpen ? " open" : ""}`}>
+        <aside className={`app-sidebar${menuOpen ? ' open' : ''}`}>
           <div className="sidebar-brand">
             <div className="brand-mark">
               <svg
@@ -369,43 +344,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 preserveAspectRatio="xMinYMid meet"
               >
                 <defs>
-                  <linearGradient
-                    id="g-front"
-                    x1="0%"
-                    y1="100%"
-                    x2="100%"
-                    y2="0%"
-                  >
+                  <linearGradient id="g-front" x1="0%" y1="100%" x2="100%" y2="0%">
                     <stop offset="0%" stopColor="#0f8f67" />
                     <stop offset="100%" stopColor="#52d4a5" />
                   </linearGradient>
-                  <linearGradient
-                    id="g-back-light"
-                    x1="0%"
-                    y1="0%"
-                    x2="100%"
-                    y2="100%"
-                  >
+                  <linearGradient id="g-back-light" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#0a6f4f" />
                     <stop offset="100%" stopColor="#081510" />
                   </linearGradient>
-                  <linearGradient
-                    id="g-back-dark"
-                    x1="0%"
-                    y1="0%"
-                    x2="100%"
-                    y2="100%"
-                  >
+                  <linearGradient id="g-back-dark" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#0f8f67" />
                     <stop offset="100%" stopColor="#0a6f4f" />
                   </linearGradient>
-                  <filter
-                    id="shadow"
-                    x="-30%"
-                    y="-30%"
-                    width="160%"
-                    height="160%"
-                  >
+                  <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
                     <feDropShadow
                       dx="0"
                       dy="6"
@@ -444,14 +395,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
 
             {NAV.map(({ href, label, description, Icon }) => {
-              const active =
-                pathname === href || pathname?.startsWith(`${href}/`);
+              const active = pathname === href || pathname?.startsWith(`${href}/`);
               return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`nav-item${active ? " active" : ""}`}
-                >
+                <Link key={href} href={href} className={`nav-item${active ? ' active' : ''}`}>
                   <div className="nav-icon">
                     <Icon />
                   </div>
@@ -465,13 +411,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             {user?.is_admin &&
               (() => {
                 const { href, label, description, Icon } = ADMIN_NAV;
-                const active =
-                  pathname === href || pathname?.startsWith(`${href}/`);
+                const active = pathname === href || pathname?.startsWith(`${href}/`);
                 return (
-                  <Link
-                    href={href}
-                    className={`nav-item${active ? " active" : ""}`}
-                  >
+                  <Link href={href} className={`nav-item${active ? ' active' : ''}`}>
                     <div className="nav-icon">
                       <Icon />
                     </div>
@@ -489,7 +431,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <div className="sidebar-avatar">{initialsForUser(user)}</div>
               <div className="sidebar-user-copy">
                 <p className="sidebar-user-name">{user?.name || user?.email}</p>
-                <p className="sidebar-user-tier">{user?.tier || "free"} plan</p>
+                <p className="sidebar-user-tier">{user?.tier || 'free'} plan</p>
               </div>
             </div>
             <button
@@ -501,7 +443,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 } catch {
                   // Best-effort logout.
                 }
-                window.location.replace("/login");
+                window.location.replace('/login');
               }}
             >
               Sign out
@@ -540,7 +482,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </div>
               <Link href="/settings" className="topbar-user-link">
                 <span className="topbar-avatar">{initialsForUser(user)}</span>
-                <span>{user?.name || "Account"}</span>
+                <span>{user?.name || 'Account'}</span>
               </Link>
             </div>
           </header>

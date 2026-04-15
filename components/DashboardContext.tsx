@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import type { ReactNode } from "react";
-import { createContext, useContext } from "react";
+import type { ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 
-import type { Mission, ShortlistEntry, User } from "../lib/api";
+import type { Mission, ShortlistEntry, User } from '../lib/api';
 
 type DashboardContextValue = {
   user: User | null;
@@ -36,7 +36,7 @@ export function DashboardProvider({
 export function useDashboardContext() {
   const context = useContext(DashboardContext);
   if (!context) {
-    throw new Error("useDashboardContext must be used inside DashboardProvider");
+    throw new Error('useDashboardContext must be used inside DashboardProvider');
   }
   return context;
 }
