@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { api } from '../../../lib/api';
+import { useAuthProvidersQuery } from '../../../lib/queries/auth';
 
 function GoogleIcon() {
   return (
@@ -34,7 +35,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleEnabled, setGoogleEnabled] = useState(false);
+  const providersQuery = useAuthProvidersQuery();
+  const googleEnabled = Boolean(providersQuery.data?.google);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -42,26 +44,6 @@ export default function RegisterPage() {
     if (authError) {
       setError(authError);
     }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadProviders() {
-      try {
-        const providers = await api.auth.providers();
-        if (!cancelled) {
-          setGoogleEnabled(Boolean(providers.google));
-        }
-      } catch {
-        if (!cancelled) {
-          setGoogleEnabled(false);
-        }
-      }
-    }
-    void loadProviders();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {

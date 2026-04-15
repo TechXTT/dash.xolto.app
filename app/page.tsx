@@ -1,23 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-import { api } from '../lib/api';
+import { useCurrentUserQuery } from '../lib/queries/auth';
 
 export default function HomePage() {
-  const [checking, setChecking] = useState(true);
+  const { isLoading, isSuccess } = useCurrentUserQuery();
 
   useEffect(() => {
-    api.auth
-      .me()
-      .then(() => {
-        window.location.replace('/missions');
-      })
-      .catch(() => {
-        setChecking(false);
-      });
-  }, []);
+    if (isSuccess) {
+      window.location.replace('/missions');
+    }
+  }, [isSuccess]);
+
+  const checking = isLoading || isSuccess;
 
   if (checking) {
     return (

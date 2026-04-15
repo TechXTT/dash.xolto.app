@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ListingCard } from '../../../components/ListingCard';
 import { useDashboardContext } from '../../../components/DashboardContext';
 import { api, Listing } from '../../../lib/api';
+import { useMatchesFeedQuery } from '../../../lib/queries/matches';
 import { connectDealStream } from '../../../lib/sse';
 
 type SortKey = 'score' | 'price_asc' | 'price_desc' | 'newest';
@@ -45,8 +46,6 @@ const MIN_SCORE_OPTIONS = [
 ];
 
 const PAGE_SIZE = 20;
-const MATCHES_FETCH_LIMIT = 200;
-
 export default function MatchesPage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [error, setError] = useState('');
@@ -75,6 +74,7 @@ export default function MatchesPage() {
   const [analyzeError, setAnalyzeError] = useState('');
   const [analyzeResult, setAnalyzeResult] = useState<Listing | null>(null);
   const [analyzeSource, setAnalyzeSource] = useState('');
+  const { data: fetchedListings = [], error: matchesError } = useMatchesFeedQuery(activeMissionId);
 
   useEffect(() => {
     if (missions.length === 0) {
@@ -83,70 +83,48 @@ export default function MatchesPage() {
   }, [missions.length, refreshMissions]);
 
   useEffect(() => {
-    let disconnect: (() => void) | undefined;
-    let cancelled = false;
+    setListings(fetchedListings);
+    setNewCount(0);
+    setDraftStates({});
+  }, [fetchedListings]);
+
+  useEffect(() => {
     const selectedMissionStatus =
       missions.find((mission) => mission.ID === activeMissionId)?.Status?.toLowerCase() ?? '';
     const shouldStream =
       activeMissionId === 0 || selectedMissionStatus === '' || selectedMissionStatus === 'active';
-
-    async function load() {
-      setError('');
-      setListings([]);
-      setNewCount(0);
-      setDraftStates({});
-      try {
-        const nextListings =
-          activeMissionId > 0
-            ? ((await api.missions.matches(activeMissionId, { limit: MATCHES_FETCH_LIMIT }))
-                .listings ?? [])
-            : ((await api.listings.feed()).listings ?? []);
-        if (cancelled) return;
-        setListings(nextListings);
-        if (!shouldStream) return;
-        disconnect = connectDealStream((payload) => {
-          if (!payload || typeof payload !== 'object') return;
-          const event = payload as {
-            type?: string;
-            missionID?: number;
-            deal?: {
-              Listing?: Listing;
-              Score?: number;
-              OfferPrice?: number;
-              FairPrice?: number;
-              Confidence?: number;
-              Reason?: string;
-              RiskFlags?: string[];
-            };
-          };
-          if (event.type !== 'deal_found' || !event.deal?.Listing?.ItemID) return;
-          if (activeMissionId > 0 && Number(event.missionID || 0) !== activeMissionId) return;
-          const listing: Listing = {
-            ...event.deal.Listing,
-            Score: event.deal.Score ?? 0,
-            OfferPrice: event.deal.OfferPrice ?? 0,
-            FairPrice: event.deal.FairPrice ?? 0,
-            Confidence: event.deal.Confidence ?? 0,
-            Reason: event.deal.Reason ?? '',
-            RiskFlags: event.deal.RiskFlags ?? [],
-          };
-          setListings((prev) => [
-            listing,
-            ...prev.filter((item) => item.ItemID !== listing.ItemID),
-          ]);
-          setNewCount((count) => count + 1);
-        });
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load matches');
-        }
-      }
-    }
-
-    void load();
+    if (!shouldStream) return;
+    const disconnect = connectDealStream((payload) => {
+      if (!payload || typeof payload !== 'object') return;
+      const event = payload as {
+        type?: string;
+        missionID?: number;
+        deal?: {
+          Listing?: Listing;
+          Score?: number;
+          OfferPrice?: number;
+          FairPrice?: number;
+          Confidence?: number;
+          Reason?: string;
+          RiskFlags?: string[];
+        };
+      };
+      if (event.type !== 'deal_found' || !event.deal?.Listing?.ItemID) return;
+      if (activeMissionId > 0 && Number(event.missionID || 0) !== activeMissionId) return;
+      const listing: Listing = {
+        ...event.deal.Listing,
+        Score: event.deal.Score ?? 0,
+        OfferPrice: event.deal.OfferPrice ?? 0,
+        FairPrice: event.deal.FairPrice ?? 0,
+        Confidence: event.deal.Confidence ?? 0,
+        Reason: event.deal.Reason ?? '',
+        RiskFlags: event.deal.RiskFlags ?? [],
+      };
+      setListings((prev) => [listing, ...prev.filter((item) => item.ItemID !== listing.ItemID)]);
+      setNewCount((count) => count + 1);
+    });
     return () => {
-      cancelled = true;
-      disconnect?.();
+      disconnect();
     };
   }, [activeMissionId, missions]);
 
@@ -189,6 +167,8 @@ export default function MatchesPage() {
   const currentMissionStatus = (currentMission?.Status || 'active').toLowerCase();
   const missionPaused = activeMissionId > 0 && currentMissionStatus === 'paused';
   const missionCompleted = activeMissionId > 0 && currentMissionStatus === 'completed';
+  const fetchErrorMessage = matchesError instanceof Error ? matchesError.message : '';
+  const pageError = error || fetchErrorMessage;
 
   function resetFilters() {
     setSort('score');
@@ -296,7 +276,7 @@ export default function MatchesPage() {
         </div>
       </section>
 
-      {error && <div className="error-msg">{error}</div>}
+      {pageError && <div className="error-msg">{pageError}</div>}
 
       <section className="surface-panel analyze-panel">
         <div>

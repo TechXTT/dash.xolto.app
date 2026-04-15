@@ -1,8 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { api, AdminAIStats, AdminUser, AdminUsageEntry } from '../../../lib/api';
+import { useMemo, useState } from 'react';
+import { AdminAIStats, AdminUser, AdminUsageEntry } from '../../../lib/api';
 import { useDashboardContext } from '../../../components/DashboardContext';
+import {
+  useAdminStatsQuery,
+  useAdminUsageQuery,
+  useAdminUsersQuery,
+} from '../../../lib/queries/admin';
 
 type Tab = 'overview' | 'users' | 'usage';
 
@@ -13,16 +18,27 @@ const TABS: Array<{ id: Tab; label: string; description: string }> = [
 ];
 
 const PERIOD_OPTIONS = [7, 14, 30, 90];
+const EMPTY_USERS: AdminUser[] = [];
+const EMPTY_USAGE_ENTRIES: AdminUsageEntry[] = [];
 
 export default function AdminPage() {
   const { user } = useDashboardContext();
+  const isAdmin = Boolean(user?.is_admin);
   const [tab, setTab] = useState<Tab>('overview');
   const [days, setDays] = useState(30);
-  const [stats, setStats] = useState<AdminAIStats | null>(null);
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [usageEntries, setUsageEntries] = useState<AdminUsageEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const clampedUsageDays = Math.min(days, 90);
+
+  const statsQuery = useAdminStatsQuery(days, isAdmin);
+  const usersQuery = useAdminUsersQuery(isAdmin);
+  const usageQuery = useAdminUsageQuery(clampedUsageDays, isAdmin && tab === 'usage');
+
+  const stats = statsQuery.data ?? null;
+  const users = usersQuery.data ?? EMPTY_USERS;
+  const usageEntries = usageQuery.data ?? EMPTY_USAGE_ENTRIES;
+  const loading =
+    statsQuery.isLoading || usersQuery.isLoading || (tab === 'usage' && usageQuery.isLoading);
+  const queryError = statsQuery.error || usersQuery.error || usageQuery.error;
+  const error = queryError instanceof Error ? queryError.message : '';
 
   const activeUsers = useMemo(
     () => users.filter((entry) => entry.mission_count > 0 || entry.search_count > 0).length,
@@ -38,27 +54,7 @@ export default function AdminPage() {
   const avgTokensPerCall =
     stats && stats.TotalCalls > 0 ? Math.round(stats.TotalTokens / stats.TotalCalls) : 0;
 
-  useEffect(() => {
-    if (!user?.is_admin) return;
-    setLoading(true);
-    setError('');
-
-    const promises: Promise<void>[] = [
-      api.admin.stats(days).then((res) => setStats(res.stats)),
-      api.admin.users().then((res) => setUsers(res.users ?? [])),
-    ];
-    if (tab === 'usage') {
-      promises.push(
-        api.admin.usage(Math.min(days, 90)).then((res) => setUsageEntries(res.entries ?? [])),
-      );
-    }
-
-    Promise.all(promises)
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load admin data'))
-      .finally(() => setLoading(false));
-  }, [user, days, tab]);
-
-  if (!user?.is_admin) {
+  if (!isAdmin) {
     return (
       <div className="page-stack">
         <section className="surface-panel empty-state">
