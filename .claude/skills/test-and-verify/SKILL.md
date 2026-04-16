@@ -5,17 +5,21 @@ Run this skill after making changes to verify nothing is broken.
 ## Steps
 
 1. Run the build:
+
    ```
    npm run build
    ```
+
    If it fails, fix the errors before proceeding.
 
 2. Run TypeScript check:
+
    ```
    npm run typecheck
    ```
 
 3. Run lint:
+
    ```
    npm run lint
    ```

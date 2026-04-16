@@ -11,15 +11,9 @@
       "Bash(git status*)",
       "Bash(git diff*)",
       "Bash(git log*)",
-      "Bash(git branch*)",
-      "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git branch*)"
     ],
-    "deny": [
-      "Bash(rm -rf *)",
-      "Bash(git push --force*)",
-      "Bash(git reset --hard*)"
-    ]
+    "deny": ["Bash(rm -rf *)", "Bash(git push --force*)", "Bash(git reset --hard*)"]
   },
   "hooks": {
     "Stop": [
@@ -28,15 +22,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npm run build 2>&1 | tail -40"
+            "command": "bash -c 'set -euo pipefail; npm run build 2>&1; exit $?'"
           }
         ]
       }
     ]
   },
-  "ignore": [
-    ".next",
-    "node_modules",
-    "*.tsbuildinfo"
-  ]
+  "ignore": [".next", "node_modules", "*.tsbuildinfo"]
 }

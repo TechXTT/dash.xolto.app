@@ -75,7 +75,11 @@ export default function MatchesPage() {
   const [analyzeResult, setAnalyzeResult] = useState<Listing | null>(null);
   const [analyzeSource, setAnalyzeSource] = useState('');
   const [fetchLimit, setFetchLimit] = useState(MATCHES_FETCH_LIMIT);
-  const { data: fetchedListings = [], error: matchesError, isFetching: isLoadingMore } = useMatchesFeedQuery(activeMissionId, fetchLimit);
+  const {
+    data: fetchedListings = [],
+    error: matchesError,
+    isFetching: isLoadingMore,
+  } = useMatchesFeedQuery(activeMissionId, fetchLimit);
 
   useEffect(() => {
     if (missions.length === 0) {
@@ -167,7 +171,8 @@ export default function MatchesPage() {
   }, [activeMissionId]);
 
   // If the backend returned exactly `fetchLimit` items, there may be more to load.
-  const mayHaveMore = activeMissionId > 0 && fetchedListings.length >= fetchLimit && fetchLimit < 200;
+  const mayHaveMore =
+    activeMissionId > 0 && fetchedListings.length >= fetchLimit && fetchLimit < 200;
 
   function loadMore() {
     setFetchLimit((prev) => Math.min(prev + MATCHES_FETCH_LIMIT, 200));

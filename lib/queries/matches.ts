@@ -3,7 +3,10 @@ import { api, Listing } from '../api';
 
 export const MATCHES_FETCH_LIMIT = 50;
 
-async function fetchMatches(activeMissionId: number, limit: number = MATCHES_FETCH_LIMIT): Promise<Listing[]> {
+async function fetchMatches(
+  activeMissionId: number,
+  limit: number = MATCHES_FETCH_LIMIT,
+): Promise<Listing[]> {
   if (activeMissionId > 0) {
     const response = await api.missions.matches(activeMissionId, { limit });
     return response.listings ?? [];
