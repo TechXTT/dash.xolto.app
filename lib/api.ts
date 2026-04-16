@@ -77,10 +77,18 @@ export type MatchesPage = {
   total: number;
 };
 
+export type MatchesSort = 'newest' | 'score' | 'price_asc' | 'price_desc';
+export type MatchesMarket = 'all' | 'marktplaats' | 'vinted_nl' | 'vinted_dk' | 'olxbg';
+export type MatchesCondition = 'all' | 'new' | 'like_new' | 'good' | 'fair';
+
 export type MatchesListParams = {
   limit: number;
   offset: number;
   mission_id?: number;
+  sort?: MatchesSort;
+  market?: MatchesMarket;
+  condition?: MatchesCondition;
+  min_score?: number;
 };
 
 export type Mission = {
@@ -332,12 +340,30 @@ export const api = {
     },
   },
   matches: {
-    list: async ({ limit, offset, mission_id }: MatchesListParams) => {
+    list: async ({
+      limit,
+      offset,
+      mission_id,
+      sort,
+      market,
+      condition,
+      min_score,
+    }: MatchesListParams) => {
       const params = new URLSearchParams({
         limit: String(limit),
         offset: String(offset),
       });
       if (mission_id && mission_id > 0) params.set('mission_id', String(mission_id));
+      // Defaults-omission rule: only emit a filter param when it differs from
+      // the backend default (sort=newest, market=all, condition=all,
+      // min_score=0). Keeps the "no filter touched" request footprint
+      // byte-identical to the Phase 2 baseline.
+      if (sort && sort !== 'newest') params.set('sort', sort);
+      if (market && market !== 'all') params.set('market', market);
+      if (condition && condition !== 'all') params.set('condition', condition);
+      if (typeof min_score === 'number' && min_score > 0) {
+        params.set('min_score', String(min_score));
+      }
       return apiFetch<MatchesPage>(`/matches?${params.toString()}`);
     },
     feedback: async (itemID: string, action: MatchFeedbackAction) =>

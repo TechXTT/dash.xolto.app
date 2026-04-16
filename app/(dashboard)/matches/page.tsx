@@ -5,24 +5,28 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { ListingCard } from '../../../components/ListingCard';
 import { useDashboardContext } from '../../../components/DashboardContext';
-import { api, Listing } from '../../../lib/api';
-import { useMatchesInfiniteQuery, MATCHES_PAGE_SIZE } from '../../../lib/queries/matches';
+import { api, Listing, MatchesCondition, MatchesMarket, MatchesSort } from '../../../lib/api';
+import {
+  DEFAULT_MATCHES_FILTER,
+  MATCHES_PAGE_SIZE,
+  MatchesFilterState,
+  useMatchesInfiniteQuery,
+} from '../../../lib/queries/matches';
 import { connectDealStream } from '../../../lib/sse';
 
-type SortKey = 'score' | 'price_asc' | 'price_desc' | 'newest';
-type MarketplaceFilter = 'all' | 'marktplaats' | 'vinted' | 'vinted_nl' | 'vinted_dk' | 'olxbg';
-type ConditionFilter = 'all' | 'new' | 'like_new' | 'good' | 'fair';
+type SortKey = MatchesSort;
+type MarketplaceFilter = MatchesMarket;
+type ConditionFilter = MatchesCondition;
 
-const MARKETPLACE_LABELS: Record<string, string> = {
+const MARKETPLACE_LABELS: Record<MarketplaceFilter, string> = {
   all: 'All markets',
   marktplaats: 'Marktplaats',
-  vinted: 'Vinted',
   vinted_nl: 'Vinted NL',
   vinted_dk: 'Vinted DK',
   olxbg: 'OLX BG',
 };
 
-const CONDITION_LABELS: Record<string, string> = {
+const CONDITION_LABELS: Record<ConditionFilter, string> = {
   all: 'Any condition',
   new: 'New',
   like_new: 'Like new',
@@ -30,11 +34,12 @@ const CONDITION_LABELS: Record<string, string> = {
   fair: 'Fair',
 };
 
+// Ordering is UI-only; first entry is the default and displayed first.
 const SORT_LABELS: Record<SortKey, string> = {
+  newest: 'Newest first',
   score: 'Best score',
   price_asc: 'Price: low → high',
   price_desc: 'Price: high → low',
-  newest: 'Newest first',
 };
 
 const MIN_SCORE_OPTIONS = [
@@ -62,16 +67,22 @@ export default function MatchesPage() {
     refreshMissions,
   } = useDashboardContext();
 
-  const [sort, setSort] = useState<SortKey>('score');
-  const [marketplace, setMarketplace] = useState<MarketplaceFilter>('all');
-  const [condition, setCondition] = useState<ConditionFilter>('all');
-  const [minScore, setMinScore] = useState(0);
+  const [sort, setSort] = useState<SortKey>(DEFAULT_MATCHES_FILTER.sort);
+  const [marketplace, setMarketplace] = useState<MarketplaceFilter>(DEFAULT_MATCHES_FILTER.market);
+  const [condition, setCondition] = useState<ConditionFilter>(DEFAULT_MATCHES_FILTER.condition);
+  const [minScore, setMinScore] = useState(DEFAULT_MATCHES_FILTER.minScore);
 
   const [analyzeURL, setAnalyzeURL] = useState('');
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
   const [analyzeError, setAnalyzeError] = useState('');
   const [analyzeResult, setAnalyzeResult] = useState<Listing | null>(null);
   const [analyzeSource, setAnalyzeSource] = useState('');
+
+  const filterState = useMemo<MatchesFilterState>(
+    () => ({ sort, market: marketplace, condition, minScore }),
+    [sort, marketplace, condition, minScore],
+  );
+
   const {
     data,
     error: matchesError,
@@ -79,7 +90,7 @@ export default function MatchesPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useMatchesInfiniteQuery(activeMissionId, MATCHES_PAGE_SIZE);
+  } = useMatchesInfiniteQuery(activeMissionId, filterState, MATCHES_PAGE_SIZE);
 
   const serverPages = useMemo(() => data?.pages ?? [], [data?.pages]);
   const flatListings = useMemo(() => serverPages.flatMap((p) => p.items ?? []), [serverPages]);
@@ -97,6 +108,9 @@ export default function MatchesPage() {
     setDraftStates({});
   }, [activeMissionId]);
 
+  // Items from the hook ARE the rendered list (server-filtered + sorted +
+  // paginated). We mirror into local state only so feedback mutations
+  // (approve/dismiss) stay optimistic without fighting the query cache.
   useEffect(() => {
     setListings(flatListings);
   }, [flatListings]);
@@ -112,28 +126,13 @@ export default function MatchesPage() {
       const event = payload as {
         type?: string;
         missionID?: number;
-        deal?: {
-          Listing?: Listing;
-          Score?: number;
-          OfferPrice?: number;
-          FairPrice?: number;
-          Confidence?: number;
-          Reason?: string;
-          RiskFlags?: string[];
-        };
+        deal?: { Listing?: Listing };
       };
       if (event.type !== 'deal_found' || !event.deal?.Listing?.ItemID) return;
       if (activeMissionId > 0 && Number(event.missionID || 0) !== activeMissionId) return;
-      const listing: Listing = {
-        ...event.deal.Listing,
-        Score: event.deal.Score ?? 0,
-        OfferPrice: event.deal.OfferPrice ?? 0,
-        FairPrice: event.deal.FairPrice ?? 0,
-        Confidence: event.deal.Confidence ?? 0,
-        Reason: event.deal.Reason ?? '',
-        RiskFlags: event.deal.RiskFlags ?? [],
-      };
-      setListings((prev) => [listing, ...prev.filter((item) => item.ItemID !== listing.ItemID)]);
+      // Under server-side filters, streamed listings may not match the active
+      // filter set. Keep the "New since open" hint but do NOT mutate the
+      // rendered list — user can refresh to re-query with active filters.
       setNewCount((count) => count + 1);
     });
     return () => {
@@ -141,28 +140,11 @@ export default function MatchesPage() {
     };
   }, [activeMissionId, missions]);
 
-  const filtered = useMemo(() => {
-    let result = listings;
-    if (marketplace !== 'all') result = result.filter((l) => l.MarketplaceID === marketplace);
-    if (condition !== 'all') result = result.filter((l) => l.Condition === condition);
-    if (minScore > 0) result = result.filter((l) => (l.Score ?? 0) >= minScore);
-
-    return [...result].sort((a, b) => {
-      switch (sort) {
-        case 'score':
-          return (b.Score ?? 0) - (a.Score ?? 0);
-        case 'price_asc':
-          return (a.Price ?? 0) - (b.Price ?? 0);
-        case 'price_desc':
-          return (b.Price ?? 0) - (a.Price ?? 0);
-        case 'newest':
-          return 0;
-      }
-    });
-  }, [listings, sort, marketplace, condition, minScore]);
-
   const hasActiveFilters =
-    marketplace !== 'all' || condition !== 'all' || minScore > 0 || sort !== 'score';
+    sort !== DEFAULT_MATCHES_FILTER.sort ||
+    marketplace !== DEFAULT_MATCHES_FILTER.market ||
+    condition !== DEFAULT_MATCHES_FILTER.condition ||
+    minScore !== DEFAULT_MATCHES_FILTER.minScore;
   const currentMission = missions.find((mission) => mission.ID === activeMissionId) ?? null;
   const showLegacyFeedWithoutMissions = missions.length === 0 && listings.length > 0;
   const currentMissionStatus = (currentMission?.Status || 'active').toLowerCase();
@@ -170,12 +152,15 @@ export default function MatchesPage() {
   const missionCompleted = activeMissionId > 0 && currentMissionStatus === 'completed';
   const fetchErrorMessage = matchesError instanceof Error ? matchesError.message : '';
   const pageError = error || fetchErrorMessage;
+  // total=0 with a filter set is the "no matches under these filters" state.
+  const emptyUnderFilters =
+    !isInitialLoading && !pageError && hasActiveFilters && totalMatches === 0;
 
   function resetFilters() {
-    setSort('score');
-    setMarketplace('all');
-    setCondition('all');
-    setMinScore(0);
+    setSort(DEFAULT_MATCHES_FILTER.sort);
+    setMarketplace(DEFAULT_MATCHES_FILTER.market);
+    setCondition(DEFAULT_MATCHES_FILTER.condition);
+    setMinScore(DEFAULT_MATCHES_FILTER.minScore);
   }
 
   async function approveMatch(itemID: string) {
@@ -268,7 +253,7 @@ export default function MatchesPage() {
           </div>
           <div className="stat-card">
             <span className="metric-label">Showing</span>
-            <strong>{filtered.length}</strong>
+            <strong>{listings.length}</strong>
           </div>
           <div className="stat-card">
             <span className="metric-label">Shortlisted</span>
@@ -385,7 +370,7 @@ export default function MatchesPage() {
         </div>
       </section>
 
-      {listings.length > 0 && (
+      {(listings.length > 0 || hasActiveFilters) && (
         <div className="feed-filter-bar">
           <div className="feed-filter-group">
             <label className="feed-filter-label">Sort</label>
@@ -466,6 +451,14 @@ export default function MatchesPage() {
           <h3>Loading matches…</h3>
           <p>Fetching the latest deals for this mission.</p>
         </div>
+      ) : emptyUnderFilters ? (
+        <div className="surface-panel empty-state">
+          <h3>No matches under these filters</h3>
+          <p>Try relaxing score threshold, condition, or market constraints.</p>
+          <button type="button" className="btn-ghost" onClick={resetFilters}>
+            Clear filters
+          </button>
+        </div>
       ) : missions.length === 0 && listings.length === 0 ? (
         <div className="surface-panel empty-state">
           <h3>No missions yet</h3>
@@ -488,18 +481,10 @@ export default function MatchesPage() {
           <h3>No matches yet for this mission</h3>
           <p>Keep monitors running or broaden budget/condition constraints in your mission.</p>
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="surface-panel empty-state">
-          <h3>No matches fit these filters</h3>
-          <p>Try relaxing score threshold or condition filters.</p>
-          <button type="button" className="btn-ghost" onClick={resetFilters}>
-            Clear filters
-          </button>
-        </div>
       ) : (
         <>
           <div className="listing-stack">
-            {filtered.map((listing) => (
+            {listings.map((listing) => (
               <ListingCard
                 key={listing.ItemID}
                 listing={listing}
