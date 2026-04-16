@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ListingCard } from '../../../components/ListingCard';
 import { useDashboardContext } from '../../../components/DashboardContext';
 import { api, Listing } from '../../../lib/api';
-import { useMatchesFeedQuery } from '../../../lib/queries/matches';
+import { useMatchesFeedQuery, MATCHES_FETCH_LIMIT } from '../../../lib/queries/matches';
 import { connectDealStream } from '../../../lib/sse';
 
 type SortKey = 'score' | 'price_asc' | 'price_desc' | 'newest';
@@ -74,7 +74,8 @@ export default function MatchesPage() {
   const [analyzeError, setAnalyzeError] = useState('');
   const [analyzeResult, setAnalyzeResult] = useState<Listing | null>(null);
   const [analyzeSource, setAnalyzeSource] = useState('');
-  const { data: fetchedListings = [], error: matchesError } = useMatchesFeedQuery(activeMissionId);
+  const [fetchLimit, setFetchLimit] = useState(MATCHES_FETCH_LIMIT);
+  const { data: fetchedListings = [], error: matchesError, isFetching: isLoadingMore } = useMatchesFeedQuery(activeMissionId, fetchLimit);
 
   useEffect(() => {
     if (missions.length === 0) {
@@ -159,6 +160,18 @@ export default function MatchesPage() {
   useEffect(() => {
     setPage(1);
   }, [activeMissionId, sort, marketplace, condition, minScore]);
+
+  // Reset fetch limit when switching missions
+  useEffect(() => {
+    setFetchLimit(MATCHES_FETCH_LIMIT);
+  }, [activeMissionId]);
+
+  // If the backend returned exactly `fetchLimit` items, there may be more to load.
+  const mayHaveMore = activeMissionId > 0 && fetchedListings.length >= fetchLimit && fetchLimit < 200;
+
+  function loadMore() {
+    setFetchLimit((prev) => Math.min(prev + MATCHES_FETCH_LIMIT, 200));
+  }
 
   const hasActiveFilters =
     marketplace !== 'all' || condition !== 'all' || minScore > 0 || sort !== 'score';
@@ -525,6 +538,16 @@ export default function MatchesPage() {
                 Next →
               </button>
             </nav>
+          )}
+          {mayHaveMore && (
+            <button
+              type="button"
+              className="load-more-btn"
+              onClick={loadMore}
+              disabled={isLoadingMore}
+            >
+              {isLoadingMore ? 'Loading...' : 'Load more matches'}
+            </button>
           )}
         </>
       )}
