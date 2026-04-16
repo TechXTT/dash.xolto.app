@@ -135,7 +135,8 @@ export function ShortlistTable({
 
   return (
     <div className="surface-panel">
-      <div className="shortlist-grid">
+      {/* Desktop grid view (hidden below 768px) */}
+      <div className="shortlist-grid shortlist-table-desktop">
         {items.map((item) => {
           const config = LABEL_CONFIG[item.RecommendationLabel] ?? null;
           const savings =
@@ -231,6 +232,98 @@ export function ShortlistTable({
 
               {onRemove && (
                 <div className="shortlist-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={async () => {
+                      if (removingID) return;
+                      setRemovingID(item.ItemID);
+                      try {
+                        await onRemove(item.ItemID);
+                      } finally {
+                        setRemovingID(null);
+                      }
+                    }}
+                    disabled={removingID === item.ItemID}
+                  >
+                    {removingID === item.ItemID ? 'Removing...' : 'Remove'}
+                  </button>
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
+
+      {/* Mobile card view (visible below 768px) */}
+      <div className="shortlist-mobile-cards">
+        {items.map((item) => {
+          const config = LABEL_CONFIG[item.RecommendationLabel] ?? null;
+          const savings =
+            item.AskPrice > 0 && item.FairPrice > 0 ? item.FairPrice - item.AskPrice : 0;
+          const strongBuy = isStrongBuy(item);
+
+          return (
+            <article
+              key={item.ItemID}
+              className={`shortlist-mobile-card${strongBuy ? ' strong-buy' : ''}`}
+            >
+              <div className="shortlist-mobile-card-header">
+                <a
+                  href={item.URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shortlist-mobile-card-title"
+                >
+                  {item.Title}
+                </a>
+                {config && (
+                  <span
+                    className="shortlist-badge"
+                    style={{ color: config.color, background: config.bg }}
+                  >
+                    {config.label}
+                  </span>
+                )}
+              </div>
+
+              <div className="shortlist-mobile-card-metrics">
+                <div className="shortlist-mobile-card-metric">
+                  <span className="metric-label">Ask</span>
+                  <strong>{formatEuroFromCents(item.AskPrice)}</strong>
+                </div>
+                <div className="shortlist-mobile-card-metric">
+                  <span className="metric-label">Fair value</span>
+                  <strong>{formatEuroFromCents(item.FairPrice)}</strong>
+                </div>
+                {item.RecommendationScore > 0 && (
+                  <div className="shortlist-mobile-card-metric">
+                    <span className="metric-label">Score</span>
+                    <strong>{item.RecommendationScore.toFixed(1)}</strong>
+                  </div>
+                )}
+                <div className="shortlist-mobile-card-metric">
+                  <span className="metric-label">Opportunity</span>
+                  <strong className={savings > 0 ? 'metric-positive' : ''}>
+                    {savings > 0 ? formatEuroFromCents(savings) : 'Watch'}
+                  </strong>
+                </div>
+              </div>
+
+              {item.Concerns?.[0] && (
+                <div className="shortlist-mobile-card-detail">
+                  <strong>Risk:</strong> {item.Concerns[0]}
+                </div>
+              )}
+
+              {item.SuggestedQuestions?.[0] && (
+                <div className="shortlist-mobile-card-detail">
+                  <strong>Next:</strong> {item.SuggestedQuestions[0]}
+                </div>
+              )}
+
+              {onRemove && (
+                <div className="shortlist-actions" style={{ marginTop: 10 }}>
                   <button
                     type="button"
                     className="btn-secondary"

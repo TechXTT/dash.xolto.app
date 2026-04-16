@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Outfit } from 'next/font/google';
 import React from 'react';
 import './globals.css';
@@ -15,6 +15,10 @@ export const metadata: Metadata = {
   title: 'xolto — Used electronics copilot',
   description:
     'Buy used electronics without overpaying. xolto scans listings, estimates fair value, flags risks, and guides seller outreach.',
+};
+
+export const viewport: Viewport = {
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
