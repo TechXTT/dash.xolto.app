@@ -6,6 +6,17 @@ import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
 import { useAuthProvidersQuery } from '../../../lib/queries/auth';
 
+/* plan = captured pre-auth pricing intent from landing CTAs */
+const VALID_PLANS = ['pro', 'power'] as const;
+type PlanIntent = (typeof VALID_PLANS)[number];
+const PLAN_LABELS: Record<PlanIntent, string> = { pro: 'Pro', power: 'Power' };
+
+function parsePlanIntent(raw: string | null): PlanIntent | null {
+  if (!raw) return null;
+  const lower = raw.toLowerCase() as PlanIntent;
+  return VALID_PLANS.includes(lower) ? lower : null;
+}
+
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
@@ -35,15 +46,21 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [planIntent, setPlanIntent] = useState<PlanIntent | null>(null);
   const providersQuery = useAuthProvidersQuery();
   const googleEnabled = Boolean(providersQuery.data?.google);
 
+  /* Post-registration redirect: preserves plan intent when present */
+  const postRegisterPath = planIntent ? `/settings?upgrade=${planIntent}` : '/missions';
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const authError = new URLSearchParams(window.location.search).get('error');
+    const params = new URLSearchParams(window.location.search);
+    const authError = params.get('error');
     if (authError) {
       setError(authError);
     }
+    setPlanIntent(parsePlanIntent(params.get('plan')));
   }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -52,7 +69,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await api.auth.register(email, password, name);
-      window.location.replace('/missions');
+      window.location.replace(postRegisterPath);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -87,12 +104,17 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* plan = captured pre-auth pricing intent badge */}
+            {planIntent && (
+              <span className="success-badge">Signing up for {PLAN_LABELS[planIntent]}</span>
+            )}
+
             {error && <div className="error-msg">{error}</div>}
 
             {googleEnabled && (
               <>
                 <a
-                  href={api.auth.googleStart('/missions')}
+                  href={api.auth.googleStart(postRegisterPath)}
                   className="btn-primary auth-submit auth-google-btn"
                 >
                   <GoogleIcon />

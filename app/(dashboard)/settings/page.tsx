@@ -1,11 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useDashboardContext } from '../../../components/DashboardContext';
 import { api, SUPPORTED_COUNTRIES } from '../../../lib/api';
 
 const TIER_LABELS: Record<string, string> = { free: 'Free', pro: 'Pro', power: 'Power' };
+
+/* upgrade = authenticated checkout trigger from plan-intent registration flow */
+const PLAN_PRICE_IDS: Record<string, string | undefined> = {
+  pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
+  power: process.env.NEXT_PUBLIC_STRIPE_POWER_PRICE_ID,
+};
 
 export default function SettingsPage() {
   const { user, refreshUser, setUser } = useDashboardContext();
@@ -19,6 +25,80 @@ export default function SettingsPage() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
+
+  /* Fire-once guard: prevents duplicate auto-checkout from StrictMode
+     double-mount, re-renders, back-navigation, or page refresh. */
+  const checkoutTriggered = useRef(false);
+
+  /* Task 4: Handle post-checkout return state (?checkout=success|cancelled) */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const checkoutStatus = params.get('checkout');
+
+    if (checkoutStatus === 'success') {
+      setNotice('Subscription activated — welcome aboard!');
+      void refreshUser();
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (checkoutStatus === 'cancelled') {
+      setNotice('Checkout was cancelled. You can upgrade any time from this page.');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* Task 3: Auto-trigger Stripe Checkout from ?upgrade=<plan> */
+  useEffect(() => {
+    if (typeof window === 'undefined' || !user) return;
+    if (checkoutTriggered.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const upgradeTier = params.get('upgrade');
+    if (!upgradeTier) return;
+
+    /* Validate: known tier, user is free, price ID exists */
+    const priceID = PLAN_PRICE_IDS[upgradeTier];
+
+    if (!['pro', 'power'].includes(upgradeTier)) {
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+
+    if (user.tier !== 'free') {
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+
+    if (!priceID) {
+      setNotice(
+        'Checkout is not available right now. You can upgrade from the settings page later.',
+      );
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+
+    /* Mark as triggered before async work to prevent double-fire */
+    checkoutTriggered.current = true;
+
+    /* Clean URL before redirect to prevent re-trigger on back-navigation */
+    window.history.replaceState({}, '', window.location.pathname);
+
+    setUpgradeLoading(true);
+    api.billing
+      .createCheckout(priceID)
+      .then((res) => {
+        window.location.href = res.url;
+      })
+      .catch((err) => {
+        setUpgradeLoading(false);
+        setError(
+          err instanceof Error
+            ? `Checkout failed: ${err.message}. You can retry from the upgrade section below.`
+            : 'Checkout failed. You can retry from the upgrade section below.',
+        );
+      });
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -87,6 +167,20 @@ export default function SettingsPage() {
 
   if (!user) {
     return null;
+  }
+
+  if (upgradeLoading) {
+    return (
+      <div className="page-stack">
+        <section className="hero-panel compact">
+          <div>
+            <p className="section-kicker">Upgrade</p>
+            <h2>Redirecting to checkout&hellip;</h2>
+            <p className="hero-copy">Setting up your subscription with Stripe.</p>
+          </div>
+        </section>
+      </div>
+    );
   }
 
   return (
