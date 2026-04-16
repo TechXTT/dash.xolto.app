@@ -70,6 +70,19 @@ export type Listing = {
 
 export type MatchFeedbackAction = 'approve' | 'dismiss' | 'clear';
 
+export type MatchesPage = {
+  items: Listing[];
+  limit: number;
+  offset: number;
+  total: number;
+};
+
+export type MatchesListParams = {
+  limit: number;
+  offset: number;
+  mission_id?: number;
+};
+
 export type Mission = {
   ID?: number;
   UserID?: string;
@@ -319,6 +332,14 @@ export const api = {
     },
   },
   matches: {
+    list: async ({ limit, offset, mission_id }: MatchesListParams) => {
+      const params = new URLSearchParams({
+        limit: String(limit),
+        offset: String(offset),
+      });
+      if (mission_id && mission_id > 0) params.set('mission_id', String(mission_id));
+      return apiFetch<MatchesPage>(`/matches?${params.toString()}`);
+    },
     feedback: async (itemID: string, action: MatchFeedbackAction) =>
       apiFetch<{ ok: boolean; feedback: string }>('/matches/feedback', {
         method: 'POST',

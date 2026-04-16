@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ListingCard } from '../../../components/ListingCard';
 import { useDashboardContext } from '../../../components/DashboardContext';
 import { api, Listing } from '../../../lib/api';
-import { useMatchesFeedQuery, MATCHES_FETCH_LIMIT } from '../../../lib/queries/matches';
+import { useMatchesInfiniteQuery, MATCHES_PAGE_SIZE } from '../../../lib/queries/matches';
 import { connectDealStream } from '../../../lib/sse';
 
 type SortKey = 'score' | 'price_asc' | 'price_desc' | 'newest';
@@ -45,7 +45,6 @@ const MIN_SCORE_OPTIONS = [
   { value: 9, label: 'Score ≥ 9' },
 ];
 
-const PAGE_SIZE = 20;
 export default function MatchesPage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [error, setError] = useState('');
@@ -67,19 +66,25 @@ export default function MatchesPage() {
   const [marketplace, setMarketplace] = useState<MarketplaceFilter>('all');
   const [condition, setCondition] = useState<ConditionFilter>('all');
   const [minScore, setMinScore] = useState(0);
-  const [page, setPage] = useState(1);
 
   const [analyzeURL, setAnalyzeURL] = useState('');
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
   const [analyzeError, setAnalyzeError] = useState('');
   const [analyzeResult, setAnalyzeResult] = useState<Listing | null>(null);
   const [analyzeSource, setAnalyzeSource] = useState('');
-  const [fetchLimit, setFetchLimit] = useState(MATCHES_FETCH_LIMIT);
   const {
-    data: fetchedListings = [],
+    data,
     error: matchesError,
-    isFetching: isLoadingMore,
-  } = useMatchesFeedQuery(activeMissionId, fetchLimit);
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useMatchesInfiniteQuery(activeMissionId, MATCHES_PAGE_SIZE);
+
+  const serverPages = useMemo(() => data?.pages ?? [], [data?.pages]);
+  const flatListings = useMemo(() => serverPages.flatMap((p) => p.items ?? []), [serverPages]);
+  const totalMatches = serverPages.length > 0 ? serverPages[serverPages.length - 1].total : 0;
+  const isInitialLoading = isFetching && serverPages.length === 0;
 
   useEffect(() => {
     if (missions.length === 0) {
@@ -88,10 +93,13 @@ export default function MatchesPage() {
   }, [missions.length, refreshMissions]);
 
   useEffect(() => {
-    setListings(fetchedListings);
     setNewCount(0);
     setDraftStates({});
-  }, [fetchedListings]);
+  }, [activeMissionId]);
+
+  useEffect(() => {
+    setListings(flatListings);
+  }, [flatListings]);
 
   useEffect(() => {
     const selectedMissionStatus =
@@ -152,31 +160,6 @@ export default function MatchesPage() {
       }
     });
   }, [listings, sort, marketplace, condition, minScore]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pageStart = (currentPage - 1) * PAGE_SIZE;
-  const pageEnd = pageStart + PAGE_SIZE;
-  const pagedListings = filtered.slice(pageStart, pageEnd);
-
-  // Reset to page 1 whenever filters, sort, or the active mission change so the
-  // user isn't stranded on a page that no longer exists after the list shrinks.
-  useEffect(() => {
-    setPage(1);
-  }, [activeMissionId, sort, marketplace, condition, minScore]);
-
-  // Reset fetch limit when switching missions
-  useEffect(() => {
-    setFetchLimit(MATCHES_FETCH_LIMIT);
-  }, [activeMissionId]);
-
-  // If the backend returned exactly `fetchLimit` items, there may be more to load.
-  const mayHaveMore =
-    activeMissionId > 0 && fetchedListings.length >= fetchLimit && fetchLimit < 200;
-
-  function loadMore() {
-    setFetchLimit((prev) => Math.min(prev + MATCHES_FETCH_LIMIT, 200));
-  }
 
   const hasActiveFilters =
     marketplace !== 'all' || condition !== 'all' || minScore > 0 || sort !== 'score';
@@ -277,6 +260,10 @@ export default function MatchesPage() {
         <div className="stats-row">
           <div className="stat-card">
             <span className="metric-label">Deals found</span>
+            <strong>{totalMatches}</strong>
+          </div>
+          <div className="stat-card">
+            <span className="metric-label">Loaded</span>
             <strong>{listings.length}</strong>
           </div>
           <div className="stat-card">
@@ -474,7 +461,12 @@ export default function MatchesPage() {
         </div>
       )}
 
-      {missions.length === 0 && listings.length === 0 ? (
+      {isInitialLoading ? (
+        <div className="surface-panel empty-state">
+          <h3>Loading matches…</h3>
+          <p>Fetching the latest deals for this mission.</p>
+        </div>
+      ) : missions.length === 0 && listings.length === 0 ? (
         <div className="surface-panel empty-state">
           <h3>No missions yet</h3>
           <p>Create a mission first to scope and prioritize your matches.</p>
@@ -507,7 +499,7 @@ export default function MatchesPage() {
       ) : (
         <>
           <div className="listing-stack">
-            {pagedListings.map((listing) => (
+            {filtered.map((listing) => (
               <ListingCard
                 key={listing.ItemID}
                 listing={listing}
@@ -520,38 +512,17 @@ export default function MatchesPage() {
               />
             ))}
           </div>
-          {totalPages > 1 && (
-            <nav className="pagination-bar" aria-label="Matches pagination">
-              <button
-                type="button"
-                className="feed-pill"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
-                ← Prev
-              </button>
-              <span className="pagination-status">
-                Page {currentPage} of {totalPages} · showing {pageStart + 1}–
-                {Math.min(pageEnd, filtered.length)} of {filtered.length}
-              </span>
-              <button
-                type="button"
-                className="feed-pill"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next →
-              </button>
-            </nav>
-          )}
-          {mayHaveMore && (
+          <p className="pagination-status" aria-live="polite">
+            Showing {listings.length} of {totalMatches}
+          </p>
+          {hasNextPage && (
             <button
               type="button"
               className="load-more-btn"
-              onClick={loadMore}
-              disabled={isLoadingMore}
+              onClick={() => void fetchNextPage()}
+              disabled={isFetchingNextPage}
             >
-              {isLoadingMore ? 'Loading...' : 'Load more matches'}
+              {isFetchingNextPage ? 'Loading...' : 'Load more matches'}
             </button>
           )}
         </>
