@@ -39,14 +39,14 @@ CI (`.github/workflows/ci.yml`) runs, in order: `install --frozen-lockfile` → 
 
 ## Environment variables
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `NEXT_PUBLIC_API_URL` | yes | Origin of the markt backend (`lib/api.ts`, `lib/sse.ts`). Defaults to `http://localhost:8000` when unset. |
-| `NEXT_PUBLIC_SENTRY_DSN` | no | Client/server/edge Sentry DSN. When unset, `@sentry/nextjs` init is a silent no-op — no errors are sent. |
-| `NEXT_PUBLIC_GIT_SHA` | no | Local override for release identifier. Falls through to `VERCEL_GIT_COMMIT_SHA` on Vercel, then `"dev"`. Read by `next.config.mjs` and exposed as `NEXT_PUBLIC_RELEASE` to Sentry. |
-| `VERCEL_GIT_COMMIT_SHA` | auto | Auto-populated by Vercel; feeds the Sentry release tag. |
-| `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID` | yes (for billing UI) | Stripe price ID for the Pro tier checkout button on `/settings`. Leave blank to disable the button. |
-| `NEXT_PUBLIC_STRIPE_POWER_PRICE_ID` | yes (for billing UI) | Stripe price ID for the Power tier checkout button on `/settings`. Leave blank to disable the button. |
+| Variable                            | Required             | Purpose                                                                                                                                                                            |
+| ----------------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`               | yes                  | Origin of the markt backend (`lib/api.ts`, `lib/sse.ts`). Defaults to `http://localhost:8000` when unset.                                                                          |
+| `NEXT_PUBLIC_SENTRY_DSN`            | no                   | Client/server/edge Sentry DSN. When unset, `@sentry/nextjs` init is a silent no-op — no errors are sent.                                                                           |
+| `NEXT_PUBLIC_GIT_SHA`               | no                   | Local override for release identifier. Falls through to `VERCEL_GIT_COMMIT_SHA` on Vercel, then `"dev"`. Read by `next.config.mjs` and exposed as `NEXT_PUBLIC_RELEASE` to Sentry. |
+| `VERCEL_GIT_COMMIT_SHA`             | auto                 | Auto-populated by Vercel; feeds the Sentry release tag.                                                                                                                            |
+| `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID`   | yes (for billing UI) | Stripe price ID for the Pro tier checkout button on `/settings`. Leave blank to disable the button.                                                                                |
+| `NEXT_PUBLIC_STRIPE_POWER_PRICE_ID` | yes (for billing UI) | Stripe price ID for the Power tier checkout button on `/settings`. Leave blank to disable the button.                                                                              |
 
 Any additional `process.env.*` reference added in code must be added to this table and to `.env.example`.
 
@@ -76,13 +76,13 @@ Authenticated dashboard (`app/(dashboard)`):
 
 dash is structured so that the backend owns meaning and the frontend owns presentation. The contract comes in on `/matches` as `{ items: Listing[], ... }` (the `items[]` envelope), and `lib/api.ts` types it. Every rendered chip, verdict, and CTA on a match card is produced by a small pure module in `lib/`:
 
-| File | Owns |
-|---|---|
-| `lib/api.ts` | `API_BASE` + all TypeScript types (`Listing`, `SearchSpec`, etc.) + fetch helpers. This is the single source for the `/matches` `items[]` envelope read. |
-| `lib/comparables.ts` | Comparables chip text (e.g. "5 comparables, median 12d old"). |
-| `lib/musthaves.ts` | Must-have chip style + glyph per status (match / mismatch / unknown). Consumes `Listing.MustHaves`. |
-| `lib/reason.ts` | Parses the pipe-separated `Reason` string into structured chips + prose fallback. Tolerates empty/malformed reasons. |
-| `lib/verdict.ts` | Maps `RecommendedAction` → action-verdict label/variant and selects the primary CTA (`ask`, `draft`, `approve`, `dismiss`). Backend-owned verdict enum: `buy | negotiate | ask_seller | skip`. |
+| File                 | Owns                                                                                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- | ---------- | ------ |
+| `lib/api.ts`         | `API_BASE` + all TypeScript types (`Listing`, `SearchSpec`, etc.) + fetch helpers. This is the single source for the `/matches` `items[]` envelope read.     |
+| `lib/comparables.ts` | Comparables chip text (e.g. "5 comparables, median 12d old").                                                                                                |
+| `lib/musthaves.ts`   | Must-have chip style + glyph per status (match / mismatch / unknown). Consumes `Listing.MustHaves`.                                                          |
+| `lib/reason.ts`      | Parses the pipe-separated `Reason` string into structured chips + prose fallback. Tolerates empty/malformed reasons.                                         |
+| `lib/verdict.ts`     | Maps `RecommendedAction` → action-verdict label/variant and selects the primary CTA (`ask`, `draft`, `approve`, `dismiss`). Backend-owned verdict enum: `buy | negotiate | ask_seller | skip`. |
 
 `components/ListingCard.tsx` is the single consumer. Each card renders a seven-row chip structure, in order:
 
