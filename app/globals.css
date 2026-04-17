@@ -2171,6 +2171,17 @@
     line-height: 1.4;
   }
 
+  /* Prose tail hidden on mobile; chip row carries the signal below 768px. */
+  .listing-reason-chip-row {
+    margin-top: 6px;
+  }
+
+  @media (max-width: 767.98px) {
+    .listing-reason-prose {
+      display: none;
+    }
+  }
+
   .chat-feed-cta {
     display: flex;
     align-items: center;

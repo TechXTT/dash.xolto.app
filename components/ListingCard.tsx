@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Listing } from '../lib/api';
 import { comparablesChipText } from '../lib/comparables';
 import { formatEuroFromCents } from '../lib/format';
+import { parseReason } from '../lib/reason';
 import { actionVerdict, primaryCta } from '../lib/verdict';
 
 interface Props {
@@ -78,6 +79,10 @@ export function ListingCard({
     listing.ComparablesCount,
     listing.ComparablesMedianAgeDays,
   );
+  // Reason may be empty or malformed (no "|" separator); in that case
+  // `chips` is empty and we fall back to the raw reason text so nothing is lost.
+  const parsedReason = parseReason(reason ?? '');
+  const hasReasonChips = parsedReason.chips.length > 0;
 
   const [saving, setSaving] = useState(false);
   const [feedbackPending, setFeedbackPending] = useState(false);
@@ -180,6 +185,22 @@ export function ListingCard({
                 </span>
               </div>
             )}
+            {hasReasonChips && (
+              <div
+                className="listing-evidence-row listing-reason-chip-row"
+                data-testid="reason-chip-row"
+              >
+                {parsedReason.chips.map((chip, idx) => (
+                  <span
+                    key={`${chip.kind}-${idx}`}
+                    className="evidence-chip"
+                    data-reason-kind={chip.kind}
+                  >
+                    {chip.label}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {onShortlist && (
@@ -201,7 +222,16 @@ export function ListingCard({
           </span>
         </div>
 
-        {reason && <p className="listing-reason">{reason}</p>}
+        {reason &&
+          (hasReasonChips ? (
+            parsedReason.prose && (
+              <p className="listing-reason listing-reason-prose" data-testid="reason-prose">
+                {parsedReason.prose}
+              </p>
+            )
+          ) : (
+            <p className="listing-reason">{reason}</p>
+          ))}
         {(item.RiskFlags?.length ?? 0) > 0 && (
           <div className="risk-flags">
             {item.RiskFlags!.map((flag) => (
