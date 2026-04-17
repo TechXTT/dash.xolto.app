@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Listing } from '../lib/api';
 import { comparablesChipText } from '../lib/comparables';
 import { formatEuroFromCents } from '../lib/format';
+import { marketplaceCountryCode } from '../lib/marketplace';
 import { mustHaveChipStyle } from '../lib/musthaves';
 import { parseReason } from '../lib/reason';
 import { actionVerdict, primaryCta } from '../lib/verdict';
@@ -76,9 +77,11 @@ export function ListingCard({
   const confidenceLabel = confidenceCopy(confidence);
   const suggestedQuestion = firstSuggestedQuestion(listing.RiskFlags ?? []);
   const feedback = listing.Feedback ?? '';
+  const listingCountry = marketplaceCountryCode(listing.MarketplaceID);
   const comparablesText = comparablesChipText(
     listing.ComparablesCount,
     listing.ComparablesMedianAgeDays,
+    listingCountry,
   );
   // Reason may be empty or malformed (no "|" separator); in that case
   // `chips` is empty and we fall back to the raw reason text so nothing is lost.

@@ -202,35 +202,17 @@ export type AssistantReply = {
   Recommendations?: Recommendation[];
 };
 
-export type MarketplaceOption = {
-  id: string;
-  label: string;
-  countryCode: string;
-  providerFamily: string;
-};
-
-export const SUPPORTED_COUNTRIES = [
-  { code: 'NL', label: 'Netherlands' },
-  { code: 'BG', label: 'Bulgaria' },
-  { code: 'DK', label: 'Denmark' },
-] as const;
-
-export const MARKETPLACE_OPTIONS: MarketplaceOption[] = [
-  { id: 'marktplaats', label: 'Marktplaats', countryCode: 'NL', providerFamily: 'marktplaats' },
-  { id: 'vinted_nl', label: 'Vinted NL', countryCode: 'NL', providerFamily: 'vinted' },
-  { id: 'olxbg', label: 'OLX BG', countryCode: 'BG', providerFamily: 'olx' },
-  { id: 'vinted_dk', label: 'Vinted DK', countryCode: 'DK', providerFamily: 'vinted' },
-];
-
-export function marketplaceCandidates(
-  countryCode?: string,
-  crossBorder = false,
-): MarketplaceOption[] {
-  if (crossBorder) return MARKETPLACE_OPTIONS;
-  return MARKETPLACE_OPTIONS.filter(
-    (marketplace) => marketplace.countryCode === (countryCode || '').toUpperCase(),
-  );
-}
+// Marketplace enum / country wiring lives in `./marketplace` so pure
+// presenters can import it from the Node --test harness without pulling
+// in the whole /api.ts surface. Re-exported here for backward compatibility
+// with existing callers (`import { MARKETPLACE_OPTIONS } from '../lib/api'`).
+export type { MarketplaceOption } from './marketplace';
+export {
+  SUPPORTED_COUNTRIES,
+  MARKETPLACE_OPTIONS,
+  marketplaceCandidates,
+  marketplaceCountryCode,
+} from './marketplace';
 
 type ErrorPayload = {
   error?: string;
