@@ -47,7 +47,7 @@ function draftFromSearch(search?: Partial<SearchSpec>): DraftState {
   return {
     name: search?.Name || '',
     query: search?.Query || '',
-    marketplaceID: search?.MarketplaceID || 'marktplaats',
+    marketplaceID: search?.MarketplaceID || 'olxbg',
     maxPrice: search?.MaxPrice ? String(Math.round(search.MaxPrice / 100)) : '',
     categoryID: search?.CategoryID ? String(search.CategoryID) : '',
     checkInterval: String(normalizeCheckIntervalMinutes(search?.CheckInterval)),
@@ -171,7 +171,7 @@ export function SearchConfigForm({
           <input
             id="search-name"
             className="input"
-            placeholder="Sony A6700 body"
+            placeholder="Лаптоп Lenovo ThinkPad"
             value={draft.name}
             onChange={(e) => setDraft((current) => ({ ...current, name: e.target.value }))}
             required
@@ -185,7 +185,7 @@ export function SearchConfigForm({
           <input
             id="search-query"
             className="input"
-            placeholder="sony a6700 camera"
+            placeholder="lenovo thinkpad t14"
             value={draft.query}
             onChange={(e) => setDraft((current) => ({ ...current, query: e.target.value }))}
             required
@@ -202,11 +202,11 @@ export function SearchConfigForm({
             value={draft.marketplaceID}
             onChange={(e) => setDraft((current) => ({ ...current, marketplaceID: e.target.value }))}
           >
-            <option value="marktplaats">Marktplaats</option>
-            <option value="vinted">Vinted (legacy)</option>
-            <option value="vinted_nl">Vinted NL</option>
-            <option value="vinted_dk">Vinted DK</option>
             <option value="olxbg">OLX Bulgaria</option>
+            <option value="marktplaats">Marktplaats (legacy)</option>
+            <option value="vinted">Vinted (legacy)</option>
+            <option value="vinted_nl">Vinted NL (legacy)</option>
+            <option value="vinted_dk">Vinted DK (legacy)</option>
           </select>
         </div>
 

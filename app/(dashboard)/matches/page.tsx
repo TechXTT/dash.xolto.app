@@ -272,8 +272,8 @@ export default function MatchesPage() {
         <div>
           <p className="section-kicker">Analyze any listing</p>
           <p className="section-support">
-            Paste a Marktplaats, Vinted, or OLX BG URL and xolto will score it with the same AI that
-            ranks your mission feed.
+            Paste an OLX.bg, Marktplaats, or Vinted URL and xolto will score it with the same AI
+            that ranks your mission feed.
             {activeMissionId > 0 &&
               " The active mission's goal and approved comparables will be used as context."}
           </p>
@@ -282,7 +282,7 @@ export default function MatchesPage() {
           <input
             type="url"
             className="input"
-            placeholder="https://www.marktplaats.nl/v/.../m1234567890-..."
+            placeholder="https://www.olx.bg/d/ad/laptop-lenovo-thinkpad-CID632-ID1ABcDe.html"
             value={analyzeURL}
             onChange={(e) => setAnalyzeURL(e.target.value)}
             onKeyDown={(e) => {
