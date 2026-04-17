@@ -97,6 +97,15 @@ export type Listing = {
   // Optional on the type for backward-compat with older cached responses;
   // renderer coalesces missing/null to `[]` (chip row hidden).
   MustHaves?: MustHave[];
+  // CurrencyStatus signals how the Price field reached its EUR-cents value.
+  // Emitted by the backend on the /matches envelope (PascalCase from Go).
+  // Wire values:
+  //   "eur_native"          — listing was scraped in EUR; no conversion
+  //   "converted_from_bgn"  — OLX BG listing converted BGN → EUR at ingest
+  //   "unknown"             — backend couldn't determine (defensive)
+  //   ""                    — field absent on pre-M2 rows or non-OLX markets
+  // Renderer uses "converted_from_bgn" to show an "≈ from BGN" caption.
+  CurrencyStatus?: 'eur_native' | 'converted_from_bgn' | 'unknown' | '';
   Feedback?: '' | 'approved' | 'dismissed';
 };
 

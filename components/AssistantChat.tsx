@@ -127,12 +127,16 @@ function RecCard({ rec }: { rec: Recommendation }) {
         </span>
       </div>
       <div className="rec-card-prices">
-        <strong>{formatEuroFromCents(rec.Listing.Price)}</strong>
+        <strong>{formatEuroFromCents(rec.Listing.Price, '—', rec.Listing.MarketplaceID)}</strong>
         {(rec.Scored?.FairPrice ?? 0) > 0 && (
-          <span className="rec-fair">fair value {formatEuroFromCents(rec.Scored!.FairPrice)}</span>
+          <span className="rec-fair">
+            fair value {formatEuroFromCents(rec.Scored!.FairPrice, '—', rec.Listing.MarketplaceID)}
+          </span>
         )}
         {(rec.SuggestedOffer ?? 0) > 0 && (
-          <span className="rec-offer">offer {formatEuroFromCents(rec.SuggestedOffer!)}</span>
+          <span className="rec-offer">
+            offer {formatEuroFromCents(rec.SuggestedOffer!, '—', rec.Listing.MarketplaceID)}
+          </span>
         )}
       </div>
       {rec.Verdict && <p className="rec-verdict">{rec.Verdict}</p>}

@@ -245,11 +245,18 @@ export function ListingCard({
         </div>
 
         <div className="listing-price-row">
-          <span className="listing-price">Ask: {formatEuroFromCents(item.Price)}</span>
+          <span className="listing-price">
+            Ask: {formatEuroFromCents(item.Price, '—', item.MarketplaceID)}
+          </span>
           <span className="price-caption">
-            Fair: {fairPrice ? formatEuroFromCents(fairPrice) : 'Unknown'}
+            Fair: {fairPrice ? formatEuroFromCents(fairPrice, '—', item.MarketplaceID) : 'Unknown'}
           </span>
         </div>
+        {item.CurrencyStatus === 'converted_from_bgn' && (
+          <p className="price-conversion-caption" data-testid="price-conversion-caption">
+            ≈ from BGN
+          </p>
+        )}
 
         {reason &&
           (hasReasonChips ? (
