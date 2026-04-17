@@ -19,7 +19,7 @@ test('count=0 → null (chip does not render) regardless of median', () => {
   assert.equal(comparablesChipText(0, 999), null);
 });
 
-test('count=undefined → null (treat as 0, don\'t render)', () => {
+test("count=undefined → null (treat as 0, don't render)", () => {
   assert.equal(comparablesChipText(undefined, undefined), null);
   assert.equal(comparablesChipText(undefined, 12), null);
 });
