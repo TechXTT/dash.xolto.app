@@ -1,6 +1,6 @@
 # xolto-app
 
-`xolto-app` is the authenticated buyer surface for xolto, the mission-first used-electronics buying copilot. It is the Next.js 14 dashboard deployed to Vercel at `dash.xolto.app`. The product is wedged on NL / Marktplaats listings for used cameras and laptops; every UI decision serves a single JTBD: help a high-intent buyer decide which listings are worth pursuing and recommend one of four actions — Buy, Negotiate, Ask seller, Skip.
+`xolto-app` is the authenticated buyer surface for xolto, the mission-first used-electronics buying copilot. It is the Next.js 14 dashboard deployed to Vercel at `dash.xolto.app`. The product is wedged on the high-intent BG used-tech buyer on OLX.bg, with pricing correctness in BGN as a P1 trust constraint (wedge replaced NL / Marktplaats on 2026-04-17; legacy Marktplaats code remains but does not drive product decisions). Every UI decision serves a single JTBD: help a high-intent buyer decide which listings are worth pursuing and recommend one of four actions — Buy, Negotiate, Ask seller, Skip.
 
 This repo owns the authenticated UI only. It is a thin presentation layer: all verdict scoring, pricing, and match logic lives in the [`markt`](https://github.com/TechXTT/xolto) backend behind `api.xolto.app`. This README documents how to run, extend, and verify the dashboard without introducing drift.
 
