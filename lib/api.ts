@@ -71,6 +71,15 @@ export type Listing = {
   // Kept optional + widened to string for backward-compat on old cached
   // responses; renderer defaults unknown/missing values to `ask_seller`.
   RecommendedAction?: RecommendedAction | string;
+  // ComparablesCount is the number of comparable deals the scorer consulted
+  // when producing the verdict (XOL-16, v0.8). Emitted directly by the Go
+  // backend as PascalCase `ComparablesCount`. Optional — older cached
+  // responses may omit it; renderer treats missing as 0 (hide chip).
+  ComparablesCount?: number;
+  // ComparablesMedianAgeDays is the median age in days of the comparable
+  // deals used by the scorer (XOL-16, v0.8). 0 when no comparables had a
+  // valid LastSeen timestamp. Renderer caps display at "365d+".
+  ComparablesMedianAgeDays?: number;
   Feedback?: '' | 'approved' | 'dismissed';
 };
 
