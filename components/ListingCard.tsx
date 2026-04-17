@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Listing } from '../lib/api';
 import { comparablesChipText } from '../lib/comparables';
 import { formatEuroFromCents } from '../lib/format';
+import { marketplaceCountryCode } from '../lib/marketplace';
 import { mustHaveChipStyle } from '../lib/musthaves';
 import { parseReason } from '../lib/reason';
 import { actionVerdict, primaryCta } from '../lib/verdict';
@@ -76,9 +77,11 @@ export function ListingCard({
   const confidenceLabel = confidenceCopy(confidence);
   const suggestedQuestion = firstSuggestedQuestion(listing.RiskFlags ?? []);
   const feedback = listing.Feedback ?? '';
+  const listingCountry = marketplaceCountryCode(listing.MarketplaceID);
   const comparablesText = comparablesChipText(
     listing.ComparablesCount,
     listing.ComparablesMedianAgeDays,
+    listingCountry,
   );
   // Reason may be empty or malformed (no "|" separator); in that case
   // `chips` is empty and we fall back to the raw reason text so nothing is lost.
@@ -242,11 +245,18 @@ export function ListingCard({
         </div>
 
         <div className="listing-price-row">
-          <span className="listing-price">Ask: {formatEuroFromCents(item.Price)}</span>
+          <span className="listing-price">
+            Ask: {formatEuroFromCents(item.Price, '—', item.MarketplaceID)}
+          </span>
           <span className="price-caption">
-            Fair: {fairPrice ? formatEuroFromCents(fairPrice) : 'Unknown'}
+            Fair: {fairPrice ? formatEuroFromCents(fairPrice, '—', item.MarketplaceID) : 'Unknown'}
           </span>
         </div>
+        {item.CurrencyStatus === 'converted_from_bgn' && (
+          <p className="price-conversion-caption" data-testid="price-conversion-caption">
+            ≈ from BGN
+          </p>
+        )}
 
         {reason &&
           (hasReasonChips ? (

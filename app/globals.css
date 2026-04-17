@@ -1361,6 +1361,16 @@
     font-size: 0.85rem;
   }
 
+  /* Small caption shown under the ask price on OLX BG listings whose EUR
+     value was converted from a BGN-native source. Signals the number is
+     correct-in-EUR-but-derived so users can trust the display. */
+  .price-conversion-caption {
+    color: var(--fg-500);
+    font-size: 0.75rem;
+    margin: 2px 0 0;
+    font-style: italic;
+  }
+
   /* ──────────────────────────────────────────
      Shortlist
   ────────────────────────────────────────── */
