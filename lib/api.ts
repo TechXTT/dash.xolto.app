@@ -51,6 +51,18 @@ export type SearchSpec = {
 
 export type RecommendedAction = 'buy' | 'negotiate' | 'ask_seller' | 'skip';
 
+// MustHaveStatus is the EXHAUSTIVE set of per-must-have match statuses emitted
+// by the backend scorer (XOL-18, v0.8). Any other value is invalid envelope
+// data; presenter falls through to the "unknown" visual.
+export type MustHaveStatus = 'met' | 'missed' | 'unknown';
+
+// MustHave is one entry in the `MustHaves` array on a scored listing. The
+// backend emits PascalCase keys directly; do not remap.
+export type MustHave = {
+  Text: string;
+  Status: MustHaveStatus;
+};
+
 export type Listing = {
   ItemID: string;
   ProfileID?: number;
@@ -80,6 +92,11 @@ export type Listing = {
   // deals used by the scorer (XOL-16, v0.8). 0 when no comparables had a
   // valid LastSeen timestamp. Renderer caps display at "365d+".
   ComparablesMedianAgeDays?: number;
+  // MustHaves is the per-must-have match status array emitted by the backend
+  // scorer (XOL-18, v0.8). Empty array when the mission has no RequiredFeatures.
+  // Optional on the type for backward-compat with older cached responses;
+  // renderer coalesces missing/null to `[]` (chip row hidden).
+  MustHaves?: MustHave[];
   Feedback?: '' | 'approved' | 'dismissed';
 };
 
