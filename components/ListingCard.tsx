@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Listing } from '../lib/api';
 import { comparablesChipText } from '../lib/comparables';
 import { formatEuroFromCents } from '../lib/format';
+import { mustHaveChipStyle } from '../lib/musthaves';
 import { parseReason } from '../lib/reason';
 import { actionVerdict, primaryCta } from '../lib/verdict';
 
@@ -83,6 +84,9 @@ export function ListingCard({
   // `chips` is empty and we fall back to the raw reason text so nothing is lost.
   const parsedReason = parseReason(reason ?? '');
   const hasReasonChips = parsedReason.chips.length > 0;
+  // MustHaves may be missing on older cached responses → coalesce to [] so the
+  // chip row is simply hidden rather than crashing on .length of undefined.
+  const mustHaves = listing.MustHaves ?? [];
 
   const [saving, setSaving] = useState(false);
   const [feedbackPending, setFeedbackPending] = useState(false);
@@ -183,6 +187,28 @@ export function ListingCard({
                 <span className="evidence-chip" data-testid="comparables-chip">
                   {comparablesText}
                 </span>
+              </div>
+            )}
+            {mustHaves.length > 0 && (
+              <div
+                className="listing-evidence-row listing-musthave-chip-row"
+                data-testid="musthave-chip-row"
+              >
+                {mustHaves.map((mh, idx) => {
+                  const style = mustHaveChipStyle(mh.Status);
+                  return (
+                    <span
+                      key={`${style.status}-${idx}-${mh.Text}`}
+                      className="evidence-chip musthave-chip"
+                      data-musthave-status={style.status}
+                    >
+                      <span aria-hidden="true" className="musthave-chip-glyph">
+                        {style.glyph}
+                      </span>{' '}
+                      {mh.Text}
+                    </span>
+                  );
+                })}
               </div>
             )}
             {hasReasonChips && (
