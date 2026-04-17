@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { Listing } from '../lib/api';
+import { comparablesChipText } from '../lib/comparables';
 import { formatEuroFromCents } from '../lib/format';
 import { actionVerdict, primaryCta } from '../lib/verdict';
 
@@ -73,6 +74,10 @@ export function ListingCard({
   const confidenceLabel = confidenceCopy(confidence);
   const suggestedQuestion = firstSuggestedQuestion(listing.RiskFlags ?? []);
   const feedback = listing.Feedback ?? '';
+  const comparablesText = comparablesChipText(
+    listing.ComparablesCount,
+    listing.ComparablesMedianAgeDays,
+  );
 
   const [saving, setSaving] = useState(false);
   const [feedbackPending, setFeedbackPending] = useState(false);
@@ -168,6 +173,13 @@ export function ListingCard({
               <span className="subtle-pill">{confidenceLabel}</span>
               {feedback === 'approved' && <span className="approved-badge">Approved</span>}
             </div>
+            {comparablesText && (
+              <div className="listing-evidence-row">
+                <span className="evidence-chip" data-testid="comparables-chip">
+                  {comparablesText}
+                </span>
+              </div>
+            )}
           </div>
 
           {onShortlist && (
