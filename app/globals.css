@@ -2171,6 +2171,40 @@
     line-height: 1.4;
   }
 
+  /* Must-have match indicator — XOL-18 v0.8 "Did this match what I asked for?"
+     Per-status palette reuses the verdict-pill tokens so green/red/gray read
+     consistent with the rest of the decisional surface. Keeps the chip base
+     shape/metrics inherited from .evidence-chip. */
+  .listing-musthave-chip-row {
+    margin-top: 6px;
+  }
+
+  .musthave-chip-glyph {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 4px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .musthave-chip[data-musthave-status='met'] {
+    background: rgba(22, 163, 74, 0.14);
+    color: var(--success-600, #16a34a);
+    border-color: rgba(22, 163, 74, 0.32);
+  }
+
+  .musthave-chip[data-musthave-status='missed'] {
+    background: rgba(220, 38, 38, 0.12);
+    color: var(--danger-600);
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  .musthave-chip[data-musthave-status='unknown'] {
+    background: rgba(100, 116, 139, 0.16);
+    color: var(--fg-500);
+    border-color: rgba(100, 116, 139, 0.28);
+  }
+
   /* Prose tail hidden on mobile; chip row carries the signal below 768px. */
   .listing-reason-chip-row {
     margin-top: 6px;
