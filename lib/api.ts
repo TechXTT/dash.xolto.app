@@ -49,6 +49,8 @@ export type SearchSpec = {
   ConsecutiveFailures?: number;
 };
 
+export type RecommendedAction = 'buy' | 'negotiate' | 'ask_seller' | 'skip';
+
 export type Listing = {
   ItemID: string;
   ProfileID?: number;
@@ -65,6 +67,10 @@ export type Listing = {
   Confidence?: number;
   Reason?: string;
   RiskFlags?: string[];
+  // RecommendedAction is the backend-emitted 4-way verdict (XOL-11).
+  // Kept optional + widened to string for backward-compat on old cached
+  // responses; renderer defaults unknown/missing values to `ask_seller`.
+  RecommendedAction?: RecommendedAction | string;
   Feedback?: '' | 'approved' | 'dismissed';
 };
 

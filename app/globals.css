@@ -424,6 +424,46 @@
     border: 1px solid transparent;
   }
 
+  /* Headline action verdict — the backend-emitted 4-way RecommendedAction
+     (XOL-11). Primary presentational signal on every /matches card. */
+  .action-verdict {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    line-height: 1;
+  }
+
+  .action-verdict-buy {
+    background: rgba(22, 163, 74, 0.14);
+    color: var(--success-600, #16a34a);
+    border-color: rgba(22, 163, 74, 0.32);
+  }
+
+  .action-verdict-negotiate {
+    background: rgba(245, 158, 11, 0.16);
+    color: var(--warning-500);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  .action-verdict-ask_seller {
+    background: rgba(59, 130, 246, 0.14);
+    color: #1d4ed8;
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  .action-verdict-skip {
+    background: rgba(100, 116, 139, 0.16);
+    color: var(--fg-500);
+    border-color: rgba(100, 116, 139, 0.28);
+  }
+
   .success-badge {
     background: var(--brand-100);
     color: var(--brand-700);
@@ -2289,6 +2329,22 @@
   .btn-approve:disabled,
   .btn-dismiss:disabled {
     opacity: 0.7;
+  }
+
+  /* Action-verdict-driven emphasis — the approve/dismiss buttons become
+     visually primary when the backend recommends `buy` / `skip`. */
+  .btn-approve.is-primary:not(:disabled) {
+    border-color: var(--success-600, #16a34a);
+    color: var(--success-600, #16a34a);
+    background: rgba(22, 163, 74, 0.14);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.18);
+  }
+
+  .btn-dismiss.is-primary:not(:disabled) {
+    border-color: var(--danger-600);
+    color: var(--danger-600);
+    background: rgba(220, 38, 38, 0.12);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.16);
   }
 
   .analyze-panel .generator-bar {

@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { Listing } from '../lib/api';
 import { formatEuroFromCents } from '../lib/format';
+import { actionVerdict, primaryCta } from '../lib/verdict';
 
 interface Props {
   listing: Listing;
@@ -33,15 +34,6 @@ const RISK_FLAG_LABELS: Record<string, string> = {
   refurbished_ambiguity: 'Refurbished details unclear',
 };
 
-const HARD_RISK_FLAGS = ['anomaly_price'] as const;
-const SOFT_RISK_FLAGS = [
-  'missing_key_photos',
-  'no_battery_health',
-  'vague_condition',
-  'unclear_bundle',
-  'no_model_id',
-  'refurbished_ambiguity',
-] as const;
 const QUESTION_ORDER = [
   'anomaly_price',
   'vague_condition',
@@ -76,7 +68,8 @@ export function ListingCard({
   const fairPrice = (listing.FairPrice ?? 0) > 0 ? listing.FairPrice : undefined;
   const confidence = listing.Confidence ?? 0;
   const reason = listing.Reason || undefined;
-  const verdict = verdictLabel(score, listing.RiskFlags ?? []);
+  const verdict = actionVerdict(listing.RecommendedAction);
+  const primary = primaryCta(listing.RecommendedAction);
   const confidenceLabel = confidenceCopy(confidence);
   const suggestedQuestion = firstSuggestedQuestion(listing.RiskFlags ?? []);
   const feedback = listing.Feedback ?? '';
@@ -165,7 +158,12 @@ export function ListingCard({
               {item.Title}
             </a>
             <div className="listing-meta-row" style={{ marginTop: 8 }}>
-              <span className="subtle-pill">{verdict}</span>
+              <span
+                className={`action-verdict action-verdict-${verdict.variant}`}
+                data-action={verdict.key}
+              >
+                {verdict.label}
+              </span>
               {score !== undefined && <span className="subtle-pill">Score {score.toFixed(1)}</span>}
               <span className="subtle-pill">{confidenceLabel}</span>
               {feedback === 'approved' && <span className="approved-badge">Approved</span>}
@@ -204,14 +202,21 @@ export function ListingCard({
         {suggestedQuestion && <p className="shortlist-question">Ask seller: {suggestedQuestion}</p>}
         <div className="shortlist-actions">
           {item.URL && (
-            <a href={item.URL} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+            <a
+              href={item.URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={primary === 'ask' ? 'btn-primary' : 'btn-secondary'}
+              aria-selected={primary === 'ask' ? true : undefined}
+            >
               Ask seller
             </a>
           )}
           {onDraftOffer && (
             <button
               type="button"
-              className="btn-primary"
+              className={primary === 'draft' ? 'btn-primary' : 'btn-secondary'}
+              aria-selected={primary === 'draft' ? true : undefined}
               onClick={() => void handleDraftOffer()}
               disabled={draftState?.loading}
             >
@@ -221,7 +226,8 @@ export function ListingCard({
           {onApprove && (
             <button
               type="button"
-              className={`btn-approve${feedback === 'approved' ? ' active' : ''}`}
+              className={`btn-approve${feedback === 'approved' ? ' active' : ''}${primary === 'approve' ? ' is-primary' : ''}`}
+              aria-selected={primary === 'approve' ? true : undefined}
               onClick={() => void handleApprove()}
               disabled={feedbackPending || feedback === 'approved'}
               title="Approve this match — future matches will lean on it as a ground-truth example"
@@ -232,7 +238,8 @@ export function ListingCard({
           {onDismiss && (
             <button
               type="button"
-              className="btn-dismiss"
+              className={`btn-dismiss${primary === 'dismiss' ? ' is-primary' : ''}`}
+              aria-selected={primary === 'dismiss' ? true : undefined}
               onClick={() => void handleDismiss()}
               disabled={feedbackPending}
               title="Dismiss — hide this match and avoid similar ones"
@@ -261,18 +268,6 @@ export function ListingCard({
   );
 }
 
-function verdictLabel(score: number | undefined, riskFlags: string[]) {
-  if (hasHardRiskFlag(riskFlags)) {
-    return 'Suspicious';
-  }
-  if (!score) return 'Fair price';
-  if (score >= 8) return 'Strong buy';
-  if (score >= 7) return 'Good deal';
-  if (score >= 5.5) return 'Fair price';
-  if (score >= 4) return 'Overpriced';
-  return 'Suspicious';
-}
-
 function confidenceCopy(confidence: number) {
   if (confidence >= 0.75) return 'High confidence';
   if (confidence >= 0.4) return 'Medium confidence';
@@ -285,16 +280,5 @@ function firstSuggestedQuestion(riskFlags: string[]) {
       return FLAG_TO_QUESTION[flag];
     }
   }
-  if (hasSoftRiskFlag(riskFlags)) {
-    return 'Can you confirm condition and included accessories?';
-  }
   return 'Can you confirm condition and included accessories?';
-}
-
-function hasHardRiskFlag(riskFlags: string[]) {
-  return HARD_RISK_FLAGS.some((flag) => riskFlags.includes(flag));
-}
-
-function hasSoftRiskFlag(riskFlags: string[]) {
-  return SOFT_RISK_FLAGS.some((flag) => riskFlags.includes(flag));
 }
