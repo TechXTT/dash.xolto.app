@@ -4,11 +4,7 @@ import { useState } from 'react';
 
 import { Listing } from '../lib/api';
 import { comparablesChipText } from '../lib/comparables';
-import {
-  formatBGNFromEuroCents,
-  formatEuroFromCents,
-  isBulgarianMarketplace,
-} from '../lib/format';
+import { formatBGNFromEuroCents, formatEuroFromCents, isBulgarianMarketplace } from '../lib/format';
 import { marketplaceCountryCode } from '../lib/marketplace';
 import { mustHaveChipStyle } from '../lib/musthaves';
 import { parseReason } from '../lib/reason';

@@ -11,11 +11,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import {
-  EUR_TO_BGN_PEG,
-  formatBGNFromEuroCents,
-  isBulgarianMarketplace,
-} from '../lib/bgn.ts';
+import { EUR_TO_BGN_PEG, formatBGNFromEuroCents, isBulgarianMarketplace } from '../lib/bgn.ts';
 
 // Non-breaking space used by Intl between number and currency symbol.
 const NBSP = '\u00A0';
