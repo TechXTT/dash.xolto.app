@@ -9,6 +9,7 @@ import { DashboardProvider } from '../../components/DashboardContext';
 import { LocationSetupOverlay } from '../../components/LocationSetupOverlay';
 import { OnboardingOverlay, shouldShowOnboarding } from '../../components/OnboardingOverlay';
 import { api, Mission, ShortlistEntry, User } from '../../lib/api';
+import { normalizeShortlist } from '../../lib/shortlist';
 
 function IconAI() {
   return (
@@ -142,10 +143,6 @@ function initialsForUser(user: User | null) {
     .join('')
     .slice(0, 2)
     .toUpperCase();
-}
-
-function normalizeShortlist(items: ShortlistEntry[]) {
-  return items.filter((item) => item.Status !== 'removed');
 }
 
 function resolveActiveMissionID(missions: Mission[], currentID: number, fallbackStoredID = 0) {
