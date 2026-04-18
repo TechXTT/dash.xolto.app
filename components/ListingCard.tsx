@@ -4,11 +4,12 @@ import { useState } from 'react';
 
 import { Listing } from '../lib/api';
 import { comparablesChipText } from '../lib/comparables';
-import { formatEuroFromCents } from '../lib/format';
+import { formatBGNFromEuroCents, formatEuroFromCents, isBulgarianMarketplace } from '../lib/format';
 import { marketplaceCountryCode } from '../lib/marketplace';
 import { mustHaveChipStyle } from '../lib/musthaves';
 import { parseReason } from '../lib/reason';
 import { actionVerdict, primaryCta } from '../lib/verdict';
+import { CurrencyStatusBadge } from './CurrencyStatusBadge';
 
 interface Props {
   listing: Listing;
@@ -244,18 +245,36 @@ export function ListingCard({
           )}
         </div>
 
-        <div className="listing-price-row">
-          <span className="listing-price">
-            Ask: {formatEuroFromCents(item.Price, '—', item.MarketplaceID)}
-          </span>
-          <span className="price-caption">
-            Fair: {fairPrice ? formatEuroFromCents(fairPrice, '—', item.MarketplaceID) : 'Unknown'}
-          </span>
-        </div>
-        {item.CurrencyStatus === 'converted_from_bgn' && (
-          <p className="price-conversion-caption" data-testid="price-conversion-caption">
-            ≈ from BGN
-          </p>
+        {isBulgarianMarketplace(item.MarketplaceID) ? (
+          <>
+            <div className="listing-price-row">
+              <span className="listing-price" data-testid="listing-price-bgn">
+                Ask: {formatBGNFromEuroCents(item.Price)}
+              </span>
+              <span className="price-caption">
+                Fair: {fairPrice ? formatBGNFromEuroCents(fairPrice) : 'Unknown'}
+              </span>
+            </div>
+            <p className="price-conversion-caption" data-testid="price-eur-caption">
+              ≈ {formatEuroFromCents(item.Price, '—', item.MarketplaceID)}
+              {fairPrice
+                ? ` · fair ${formatEuroFromCents(fairPrice, '—', item.MarketplaceID)}`
+                : ''}
+            </p>
+            <div className="listing-evidence-row listing-currency-status-row">
+              <CurrencyStatusBadge status={item.CurrencyStatus} />
+            </div>
+          </>
+        ) : (
+          <div className="listing-price-row">
+            <span className="listing-price">
+              Ask: {formatEuroFromCents(item.Price, '—', item.MarketplaceID)}
+            </span>
+            <span className="price-caption">
+              Fair:{' '}
+              {fairPrice ? formatEuroFromCents(fairPrice, '—', item.MarketplaceID) : 'Unknown'}
+            </span>
+          </div>
         )}
 
         {reason &&
