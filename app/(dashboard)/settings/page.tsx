@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 import { useDashboardContext } from '../../../components/DashboardContext';
+import ContactSupportSheet from '../../../components/support/ContactSupportSheet';
 import { api, SUPPORTED_COUNTRIES } from '../../../lib/api';
 
 const TIER_LABELS: Record<string, string> = { free: 'Free', pro: 'Pro', power: 'Power' };
@@ -26,6 +28,8 @@ export default function SettingsPage() {
   const [notice, setNotice] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const pathname = usePathname() || '/settings';
 
   /* Fire-once guard: prevents duplicate auto-checkout from StrictMode
      double-mount, re-renders, back-navigation, or page refresh. */
@@ -396,7 +400,33 @@ export default function SettingsPage() {
             </button>
           </section>
         )}
+
+        {/* Support section — visible to every tier including `free`. No plan
+            gate, no upsell (XOL-57 / SUP-6 AC-5). */}
+        <section className="surface-panel" data-testid="support-section">
+          <p className="section-kicker">Support</p>
+          <h3>Need a hand?</h3>
+          <p className="section-support">
+            Stuck on a mission, confused by a verdict, or spot something off? Send the team a note
+            and we&rsquo;ll reply by email within 1 business day.
+          </p>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => setSupportOpen(true)}
+            data-testid="contact-support-open"
+          >
+            Contact support
+          </button>
+        </section>
       </div>
+
+      <ContactSupportSheet
+        open={supportOpen}
+        onClose={() => setSupportOpen(false)}
+        userEmail={user.email}
+        currentPath={pathname}
+      />
     </div>
   );
 }
