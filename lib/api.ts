@@ -503,3 +503,24 @@ export type AdminUsageEntry = {
   ErrorMsg: string;
   CreatedAt: string;
 };
+
+// SupportReportRequest is the POST body for /v1/support/report (XOL-57 / SUP-6).
+// `dash_context.current_path` is always sent so support can see where the user
+// filed from; `mission_id` is attached only when a mission is in URL scope.
+export type SupportReportRequest = {
+  subject: string;
+  message: string;
+  dash_context: {
+    current_path: string;
+    mission_id?: number;
+  };
+};
+
+// SupportReportResponse is the backend 200 envelope on a successful report.
+// `plain_thread_id` is the Plain thread the ticket landed in; it is not
+// rendered to the user but is captured so that downstream retries /
+// deduplication can reference it. Non-200 responses throw via `apiFetch`.
+export type SupportReportResponse = {
+  ok: boolean;
+  plain_thread_id: string;
+};
