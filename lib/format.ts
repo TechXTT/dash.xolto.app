@@ -1,6 +1,11 @@
 import type { SearchSpec } from './api';
 import { marketplaceCountryCode } from './marketplace';
 
+// Re-export BGN primitives so existing import sites that pull from
+// `lib/format` keep working. Source of truth lives in `lib/bgn.ts` — a
+// zero-import leaf so it's testable under `node --test`.
+export { EUR_TO_BGN_PEG, formatBGNFromEuroCents, isBulgarianMarketplace } from './bgn';
+
 // Locale is chosen from the listing's marketplace country so that grouping
 // separators and decimal style match local reading habits. Currency stays
 // EUR everywhere because the dash displays EUR regardless of the source

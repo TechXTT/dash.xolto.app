@@ -1361,14 +1361,41 @@
     font-size: 0.85rem;
   }
 
-  /* Small caption shown under the ask price on OLX BG listings whose EUR
-     value was converted from a BGN-native source. Signals the number is
-     correct-in-EUR-but-derived so users can trust the display. */
+  /* Small caption shown under the ask price on OLX BG listings. On BG
+     markets the primary price is BGN (whole лв) and this caption renders
+     the EUR equivalent (computed from the fixed 1.95583 peg). Italic +
+     smaller to keep it secondary to the BGN headline. */
   .price-conversion-caption {
     color: var(--fg-500);
     font-size: 0.75rem;
     margin: 2px 0 0;
     font-style: italic;
+  }
+
+  /* Currency-status badge row — XOL-61 TRUST-1. Pinned beneath the price
+     caption on OLX BG cards; surfaces whether the backend price is EUR-native,
+     converted-from-BGN, or an unknown-currency fallback. Reuses the
+     .evidence-chip base shape so it sits consistent with comparables / must-haves. */
+  .listing-currency-status-row {
+    margin-top: 6px;
+  }
+
+  .currency-status-badge[data-currency-status='eur-native'] {
+    background: rgba(22, 163, 74, 0.1);
+    color: var(--success-600, #16a34a);
+    border-color: rgba(22, 163, 74, 0.28);
+  }
+
+  .currency-status-badge[data-currency-status='converted'] {
+    background: rgba(220, 230, 224, 0.6);
+    color: var(--fg-500);
+    border-color: rgba(15, 23, 42, 0.1);
+  }
+
+  .currency-status-badge[data-currency-status='unknown'] {
+    background: rgba(234, 179, 8, 0.14);
+    color: #a16207;
+    border-color: rgba(234, 179, 8, 0.38);
   }
 
   /* ──────────────────────────────────────────
