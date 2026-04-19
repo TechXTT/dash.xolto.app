@@ -186,9 +186,11 @@ export function ShortlistTable({
                     <td>
                       <input
                         type="checkbox"
+                        data-testid={`listing-compare-checkbox-${item.ItemID}`}
                         checked={selectedIDs.includes(item.ItemID)}
                         onChange={() => onToggleSelect?.(item.ItemID)}
                         disabled={!selectedIDs.includes(item.ItemID) && selectedIDs.length >= 4}
+                        className="compare-checkbox"
                       />
                     </td>
                     <td>
@@ -238,6 +240,16 @@ export function ShortlistTable({
               key={item.ItemID}
               className={`shortlist-card${strongBuy ? ' strong-buy' : ''}`}
             >
+              {comparisonMode && (
+                <input
+                  type="checkbox"
+                  data-testid={`listing-compare-checkbox-${item.ItemID}`}
+                  checked={selectedIDs.includes(item.ItemID)}
+                  disabled={!selectedIDs.includes(item.ItemID) && selectedIDs.length >= 4}
+                  onChange={() => onToggleSelect?.(item.ItemID)}
+                  className="compare-checkbox"
+                />
+              )}
               <div className="shortlist-card-top">
                 <div>
                   <a
@@ -410,6 +422,16 @@ export function ShortlistTable({
               key={item.ItemID}
               className={`shortlist-mobile-card${strongBuy ? ' strong-buy' : ''}`}
             >
+              {comparisonMode && (
+                <input
+                  type="checkbox"
+                  data-testid={`listing-compare-checkbox-${item.ItemID}`}
+                  checked={selectedIDs.includes(item.ItemID)}
+                  disabled={!selectedIDs.includes(item.ItemID) && selectedIDs.length >= 4}
+                  onChange={() => onToggleSelect?.(item.ItemID)}
+                  className="compare-checkbox"
+                />
+              )}
               <div className="shortlist-mobile-card-header">
                 <a
                   href={item.URL}

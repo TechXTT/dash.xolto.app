@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { useDashboardContext } from '../../../components/DashboardContext';
 import { ShortlistTable } from '../../../components/ShortlistTable';
-import { api } from '../../../lib/api';
+import { api, ShortlistEntry } from '../../../lib/api';
 import { formatEuroFromCents } from '../../../lib/format';
 
 // Maps shortlist RecommendationLabel → /draft-note verdict parameter.
@@ -21,6 +21,12 @@ function labelToVerdict(label: string): string {
     default:
       return 'ask_seller';
   }
+}
+
+// ShortlistEntry does not carry MustHaves — always return em-dash.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function mustHaveSummary(_entry: ShortlistEntry): string {
+  return '—';
 }
 
 export default function SavedPage() {
@@ -40,6 +46,7 @@ export default function SavedPage() {
   >({});
   const [comparisonMode, setComparisonMode] = useState(false);
   const [selectedIDs, setSelectedIDs] = useState<string[]>([]);
+  const [showPanel, setShowPanel] = useState(false);
 
   const prioritizedShortlist = useMemo(() => {
     return [...shortlist].sort((a, b) => {
@@ -51,11 +58,6 @@ export default function SavedPage() {
       return aStrong ? -1 : 1;
     });
   }, [shortlist]);
-
-  const selectedItems = useMemo(
-    () => prioritizedShortlist.filter((item) => selectedIDs.includes(item.ItemID)),
-    [prioritizedShortlist, selectedIDs],
-  );
 
   const totalOpportunity = prioritizedShortlist.reduce((sum, item) => {
     const savings = item.FairPrice > 0 && item.AskPrice > 0 ? item.FairPrice - item.AskPrice : 0;
@@ -106,6 +108,11 @@ export default function SavedPage() {
     });
   }
 
+  const selectedListings = useMemo(
+    () => prioritizedShortlist.filter((item) => selectedIDs.includes(item.ItemID)),
+    [prioritizedShortlist, selectedIDs],
+  );
+
   return (
     <div className="page-stack">
       <section className="hero-panel compact">
@@ -136,21 +143,104 @@ export default function SavedPage() {
           )}
           <button
             type="button"
-            className="btn-secondary"
-            onClick={() => setComparisonMode((v) => !v)}
+            data-testid="compare-toggle"
+            className={`compare-toggle-btn${comparisonMode ? ' active' : ''}`}
+            onClick={() => {
+              setComparisonMode((v) => !v);
+              setSelectedIDs([]);
+              setShowPanel(false);
+            }}
           >
-            {comparisonMode ? 'Card view' : 'Comparison view'}
+            {comparisonMode ? 'Cancel compare' : 'Compare'}
           </button>
         </div>
       </section>
 
       {error && <div className="error-msg">{error}</div>}
 
-      {comparisonMode && (
-        <section className="surface-panel">
-          <p className="section-kicker">Selected for comparison</p>
-          <p className="section-support">{selectedItems.length}/4 selected</p>
-        </section>
+      {comparisonMode && selectedIDs.length >= 2 && (
+        <div className="compare-action-bar" data-testid="compare-action-bar">
+          <span>{selectedIDs.length} selected</span>
+          <button
+            type="button"
+            onClick={() => setShowPanel(true)}
+            disabled={selectedIDs.length < 2}
+          >
+            Compare selected ({selectedIDs.length})
+          </button>
+        </div>
+      )}
+
+      {showPanel && (
+        <div className="compare-panel" data-testid="compare-panel">
+          <button
+            type="button"
+            className="compare-panel-close"
+            onClick={() => setShowPanel(false)}
+          >
+            ✕ Close
+          </button>
+          <div className="compare-table-scroll">
+            <table className="compare-table">
+              <thead>
+                <tr>
+                  <th>Attribute</th>
+                  {selectedListings.map((l) => (
+                    <th key={l.ItemID} data-testid={`compare-cell-${l.ItemID}`}>
+                      {l.Title?.slice(0, 40)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Price</td>
+                  {selectedListings.map((l) => (
+                    <td key={l.ItemID}>{formatEuroFromCents(l.AskPrice)}</td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>Fair price</td>
+                  {selectedListings.map((l) => (
+                    <td key={l.ItemID}>{formatEuroFromCents(l.FairPrice)}</td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>Score</td>
+                  {selectedListings.map((l) => (
+                    <td key={l.ItemID}>
+                      {l.RecommendationScore > 0 ? l.RecommendationScore.toFixed(1) : '—'}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>Verdict</td>
+                  {selectedListings.map((l) => (
+                    <td key={l.ItemID}>{l.Verdict || '—'}</td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>Condition</td>
+                  {selectedListings.map((l) => (
+                    <td key={l.ItemID}>{'—'}</td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>Must-haves</td>
+                  {selectedListings.map((l) => (
+                    <td key={l.ItemID}>{mustHaveSummary(l)}</td>
+                  ))}
+                </tr>
+                <tr>
+                  <td>Outreach</td>
+                  {selectedListings.map((l) => (
+                    <td key={l.ItemID}>{'none'}</td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
       <ShortlistTable
