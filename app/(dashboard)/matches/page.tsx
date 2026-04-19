@@ -54,7 +54,16 @@ export default function MatchesPage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [error, setError] = useState('');
   const [draftStates, setDraftStates] = useState<
-    Record<string, { loading: boolean; text: string | null; questions?: string[]; offer_price?: number; lang?: 'bg' | 'nl' | 'en' }>
+    Record<
+      string,
+      {
+        loading: boolean;
+        text: string | null;
+        questions?: string[];
+        offer_price?: number;
+        lang?: 'bg' | 'nl' | 'en';
+      }
+    >
   >({});
   const [newCount, setNewCount] = useState(0);
   const {

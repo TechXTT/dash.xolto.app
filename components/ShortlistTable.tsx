@@ -227,7 +227,7 @@ export function ShortlistTable({
                         <p className="draft-offer-price">
                           Suggested offer:{' '}
                           {draftStates[item.ItemID]!.lang === 'bg'
-                            ? `${((draftStates[item.ItemID]!.offer_price ?? 0) / 100 * 1.96).toFixed(0)} лв.`
+                            ? `${(((draftStates[item.ItemID]!.offer_price ?? 0) / 100) * 1.96).toFixed(0)} лв.`
                             : `€${((draftStates[item.ItemID]!.offer_price ?? 0) / 100).toFixed(2)}`}
                         </p>
                       )}
@@ -367,7 +367,7 @@ export function ShortlistTable({
                         <p className="draft-offer-price">
                           Suggested offer:{' '}
                           {draftStates[item.ItemID]!.lang === 'bg'
-                            ? `${((draftStates[item.ItemID]!.offer_price ?? 0) / 100 * 1.96).toFixed(0)} лв.`
+                            ? `${(((draftStates[item.ItemID]!.offer_price ?? 0) / 100) * 1.96).toFixed(0)} лв.`
                             : `€${((draftStates[item.ItemID]!.offer_price ?? 0) / 100).toFixed(2)}`}
                         </p>
                       )}

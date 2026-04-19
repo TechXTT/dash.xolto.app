@@ -27,7 +27,16 @@ export default function SavedPage() {
   const { shortlist, removeFromShortlist } = useDashboardContext();
   const [error, setError] = useState('');
   const [draftStates, setDraftStates] = useState<
-    Record<string, { loading: boolean; text: string | null; questions?: string[]; offer_price?: number; lang?: 'bg' | 'nl' | 'en' }>
+    Record<
+      string,
+      {
+        loading: boolean;
+        text: string | null;
+        questions?: string[];
+        offer_price?: number;
+        lang?: 'bg' | 'nl' | 'en';
+      }
+    >
   >({});
   const [comparisonMode, setComparisonMode] = useState(false);
   const [selectedIDs, setSelectedIDs] = useState<string[]>([]);
