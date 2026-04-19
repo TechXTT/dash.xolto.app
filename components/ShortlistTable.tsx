@@ -95,7 +95,7 @@ export function ShortlistTable({
       const result = await api.shortlist.replyCopilot({
         listing_id: item.ItemID,
         seller_reply: rs.sellerReply,
-        mission_id: item.MissionID ? String(item.MissionID) : '',
+        mission_id: item.MissionID ?? 0,
         our_offer_price: draftStates[item.ItemID]?.offer_price ?? 0,
         verdict: item.Verdict || '',
       });

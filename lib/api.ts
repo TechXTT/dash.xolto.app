@@ -150,7 +150,7 @@ export type ReplyCopilotResponse = {
 export type ReplyCopilotParams = {
   listing_id: string;
   seller_reply: string;
-  mission_id: string;
+  mission_id: number;
   our_offer_price: number;
   verdict: string;
 };

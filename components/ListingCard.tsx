@@ -156,7 +156,7 @@ export function ListingCard({
       const result = await api.shortlist.replyCopilot({
         listing_id: item.ItemID,
         seller_reply: sellerReply,
-        mission_id: missionId && missionId > 0 ? String(missionId) : '',
+        mission_id: missionId && missionId > 0 ? missionId : 0,
         our_offer_price: draftState?.offer_price ?? 0,
         verdict: (listing.RecommendedAction as string) || '',
       });
