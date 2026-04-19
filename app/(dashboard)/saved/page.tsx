@@ -7,11 +7,36 @@ import { ShortlistTable } from '../../../components/ShortlistTable';
 import { api } from '../../../lib/api';
 import { formatEuroFromCents } from '../../../lib/format';
 
+// Maps shortlist RecommendationLabel → /draft-note verdict parameter.
+function labelToVerdict(label: string): string {
+  switch (label) {
+    case 'buy_now':
+      return 'buy';
+    case 'worth_watching':
+      return 'negotiate';
+    case 'ask_questions':
+      return 'ask_seller';
+    case 'skip':
+      return 'skip';
+    default:
+      return 'ask_seller';
+  }
+}
+
 export default function SavedPage() {
   const { shortlist, removeFromShortlist } = useDashboardContext();
   const [error, setError] = useState('');
   const [draftStates, setDraftStates] = useState<
-    Record<string, { loading: boolean; text: string | null }>
+    Record<
+      string,
+      {
+        loading: boolean;
+        text: string | null;
+        questions?: string[];
+        offer_price?: number;
+        lang?: 'bg' | 'nl' | 'en';
+      }
+    >
   >({});
   const [comparisonMode, setComparisonMode] = useState(false);
   const [selectedIDs, setSelectedIDs] = useState<string[]>([]);
@@ -48,18 +73,28 @@ export default function SavedPage() {
       [itemID]: { loading: true, text: prev[itemID]?.text ?? null },
     }));
     setError('');
+    // Find the item to get its verdict label.
+    const item = prioritizedShortlist.find((s) => s.ItemID === itemID);
+    const verdict = item ? labelToVerdict(item.RecommendationLabel) : 'ask_seller';
     try {
-      const res = await api.shortlist.draftOffer(itemID);
+      // XOL-68: use /draft-note for rich response (questions, offer_price, lang).
+      const res = await api.shortlist.draftNote(itemID, verdict);
       setDraftStates((prev) => ({
         ...prev,
-        [itemID]: { loading: false, text: res.Content || '' },
+        [itemID]: {
+          loading: false,
+          text: res.text || '',
+          questions: res.questions ?? [],
+          offer_price: res.offer_price,
+          lang: res.lang,
+        },
       }));
     } catch (err) {
       setDraftStates((prev) => ({
         ...prev,
         [itemID]: { loading: false, text: prev[itemID]?.text ?? null },
       }));
-      setError(err instanceof Error ? err.message : 'Failed to draft offer');
+      setError(err instanceof Error ? err.message : 'Failed to draft message');
     }
   }
 

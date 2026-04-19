@@ -111,6 +111,18 @@ export type Listing = {
 
 export type MatchFeedbackAction = 'approve' | 'dismiss' | 'clear';
 
+// DraftNoteResponse is the envelope returned by POST /draft-note (XOL-67/XOL-68).
+// `questions` is always a non-null array; it is populated for ask_seller verdicts
+// and empty for buy / negotiate / generic. `offer_price` is present only for
+// negotiate when fair_price > 0; value is in EUR cents.
+export type DraftNoteResponse = {
+  text: string;
+  shape: 'buy' | 'negotiate' | 'ask_seller' | 'generic';
+  lang: 'bg' | 'nl' | 'en';
+  questions: string[];
+  offer_price?: number;
+};
+
 export type MatchesPage = {
   items: Listing[];
   limit: number;
@@ -442,6 +454,21 @@ export const api = {
         `/shortlist/${encodeURIComponent(itemID)}/draft`,
         { method: 'POST' },
       ),
+    // draftNote calls POST /draft-note (XOL-67/XOL-68). Returns structured
+    // draft with shape, lang, questions (for ask_seller) and optional offer_price.
+    draftNote: async (
+      listingId: string,
+      verdict: string,
+      missionId?: number,
+    ): Promise<DraftNoteResponse> =>
+      apiFetch<DraftNoteResponse>('/draft-note', {
+        method: 'POST',
+        body: JSON.stringify({
+          listing_id: listingId,
+          verdict,
+          ...(missionId && missionId > 0 ? { mission_id: missionId } : {}),
+        }),
+      }),
   },
   assistant: {
     converse: async (message: string) =>
