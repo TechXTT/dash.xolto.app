@@ -1,6 +1,5 @@
-// Bulgarian-currency primitives — peg const, BGN formatter, and the OLX-BG
-// marketplace detector used to decide whether a listing renders with BGN as
-// the primary headline.
+// Bulgarian-currency primitives — peg const, EUR+BGN formatter, and the OLX-BG
+// marketplace detector.
 //
 // Kept in its own zero-import leaf module so it loads under the Node
 // `--test` harness (native TS) without dragging lib/api.ts or lib/marketplace
@@ -12,29 +11,14 @@
 // rate and must not be fetched dynamically.
 export const EUR_TO_BGN_PEG = 1.95583 as const;
 
-const bgnFormatterCache = new Map<string, Intl.NumberFormat>();
-
-function getBgnFormatter(locale: string): Intl.NumberFormat {
-  const cached = bgnFormatterCache.get(locale);
-  if (cached) return cached;
-  const fmt = new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: 'BGN',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
-  bgnFormatterCache.set(locale, fmt);
-  return fmt;
-}
-
-// formatBGNFromEuroCents converts EUR-cents → BGN (whole лв) using the fixed
-// peg EUR_TO_BGN_PEG. Rendered with bg-BG locale to match how OLX BG sellers
-// list prices. Internal storage stays in EUR cents everywhere; this function
-// is purely for display.
+// formatBGNFromEuroCents formats a EUR-cents amount for Bulgarian listings.
+// Bulgaria adopted EUR on 2026-01-01; EUR is shown primary with BGN in
+// parentheses for familiarity. Uses the fixed peg EUR_TO_BGN_PEG.
 export function formatBGNFromEuroCents(cents: number, fallback = '—'): string {
   if (!Number.isFinite(cents) || cents <= 0) return fallback;
-  const bgn = (cents / 100) * EUR_TO_BGN_PEG;
-  return getBgnFormatter('bg-BG').format(bgn);
+  const eur = cents / 100;
+  const bgn = Math.round(eur * EUR_TO_BGN_PEG);
+  return `€${eur.toFixed(2)} (${bgn} лв.)`;
 }
 
 // isBulgarianMarketplace returns true when the marketplace id is a BG-country
