@@ -9,6 +9,7 @@ import { marketplaceCountryCode } from '../lib/marketplace';
 import { mustHaveChipStyle } from '../lib/musthaves';
 import { parseReason } from '../lib/reason';
 import { actionVerdict, primaryCta } from '../lib/verdict';
+import { flagLabel } from '../lib/flags';
 import { CurrencyStatusBadge } from './CurrencyStatusBadge';
 
 interface Props {
@@ -36,17 +37,11 @@ const MARKETPLACE_LABELS: Record<string, string> = {
   olxbg: 'OLX BG',
 };
 
-const RISK_FLAG_LABELS: Record<string, string> = {
-  anomaly_price: 'Anomaly price',
-  vague_condition: 'Vague condition',
-  unclear_bundle: 'Unclear bundle',
-  no_model_id: 'No model identified',
-  missing_key_photos: 'Too few photos',
-  no_battery_health: 'Battery health missing',
-  refurbished_ambiguity: 'Refurbished details unclear',
-};
+// FLAG_LABEL and flagLabel are sourced from lib/flags.ts (XOL-80).
+// RISK_FLAG_LABELS kept as a legacy alias; new code uses flagLabel() directly.
 
 const QUESTION_ORDER = [
+  'off_platform_redirect',
   'anomaly_price',
   'vague_condition',
   'no_battery_health',
@@ -57,6 +52,7 @@ const QUESTION_ORDER = [
 ] as const;
 
 const FLAG_TO_QUESTION: Record<string, string> = {
+  off_platform_redirect: 'Why are you asking me to contact you outside OLX.bg?',
   anomaly_price: 'Why is this priced so far below market value?',
   vague_condition: 'Can you describe the exact condition in more detail?',
   no_battery_health: "What's the current battery health percentage?",
@@ -350,10 +346,15 @@ export function ListingCard({
         {(item.RiskFlags?.length ?? 0) > 0 && (
           <div className="risk-flags">
             {item.RiskFlags!.map((flag) => (
-              <span key={flag} className="risk-flag">
-                {RISK_FLAG_LABELS[flag] ?? flag}
+              <span key={flag} className="risk-flag" data-flag={flag}>
+                {flagLabel(flag)}
               </span>
             ))}
+          </div>
+        )}
+        {item.RiskFlags?.includes('off_platform_redirect') && (
+          <div className="scam-warning-banner" data-testid="scam-warning-banner">
+            ⚠ This seller is asking you to communicate outside OLX.bg — a common scam pattern. Proceed with extreme caution.
           </div>
         )}
         {suggestedQuestion && <p className="shortlist-question">Ask seller: {suggestedQuestion}</p>}

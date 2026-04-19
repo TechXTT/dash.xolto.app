@@ -2222,6 +2222,17 @@
     border: 1px solid rgba(245, 158, 11, 0.2);
   }
 
+  /* XOL-80: off-platform scam walk-away banner */
+  .scam-warning-banner {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    color: #856404;
+    margin-top: 6px;
+  }
+
   /* Evidence chip — XOL-16 v0.8 "Fair price, visibly earned."
      Subdued/neutral tone so it reads as evidence, not a verdict.
      Lives beneath the verdict-pill row; wraps cleanly at 390px. */
