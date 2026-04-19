@@ -62,6 +62,9 @@ const FLAG_TO_QUESTION: Record<string, string> = {
   refurbished_ambiguity: 'Is this seller-refurbished or manufacturer-refurbished?',
 };
 
+// Internal scorer labels that must never render as user-facing text (XOL-95).
+const INTERNAL_REASON_LABELS = new Set(['accessory pre-filtered', 'market-average fallback']);
+
 export function ListingCard({
   listing,
   onShortlist,
@@ -334,6 +337,7 @@ export function ListingCard({
         )}
 
         {reason &&
+          !INTERNAL_REASON_LABELS.has(reason) &&
           (hasReasonChips ? (
             parsedReason.prose && (
               <p className="listing-reason listing-reason-prose" data-testid="reason-prose">
