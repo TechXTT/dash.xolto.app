@@ -7,10 +7,18 @@ import { ShortlistEntry } from '../lib/api';
 import { formatEuroFromCents } from '../lib/format';
 import { ScoreBar } from './ScoreBar';
 
+type DraftState = {
+  loading: boolean;
+  text: string | null;
+  questions?: string[];
+  offer_price?: number;
+  lang?: 'bg' | 'nl' | 'en';
+};
+
 type Props = {
   items: ShortlistEntry[];
   onRemove?: (itemID: string) => Promise<void>;
-  draftStates?: Record<string, { loading: boolean; text: string | null }>;
+  draftStates?: Record<string, DraftState>;
   onDraftOffer?: (itemID: string) => Promise<void>;
   comparisonMode?: boolean;
   selectedIDs?: string[];
@@ -206,14 +214,33 @@ export function ShortlistTable({
                   <button
                     type="button"
                     className="btn-primary"
+                    aria-label="Draft message to seller"
                     disabled={draftStates[item.ItemID]?.loading}
                     onClick={() => void onDraftOffer(item.ItemID)}
                   >
-                    {draftStates[item.ItemID]?.loading ? 'Drafting...' : 'Draft offer'}
+                    {draftStates[item.ItemID]?.loading ? 'Drafting...' : 'Draft message'}
                   </button>
                   {draftStates[item.ItemID]?.text && (
                     <div className="offer-draft-block">
                       <p>{draftStates[item.ItemID]!.text}</p>
+                      {(draftStates[item.ItemID]?.offer_price ?? 0) > 0 && (
+                        <p className="draft-offer-price">
+                          Suggested offer:{' '}
+                          {draftStates[item.ItemID]!.lang === 'bg'
+                            ? `${((draftStates[item.ItemID]!.offer_price ?? 0) / 100 * 1.96).toFixed(0)} лв.`
+                            : `€${((draftStates[item.ItemID]!.offer_price ?? 0) / 100).toFixed(2)}`}
+                        </p>
+                      )}
+                      {(draftStates[item.ItemID]?.questions?.length ?? 0) > 0 && (
+                        <div className="draft-questions" data-testid="draft-questions">
+                          <p className="draft-questions-label">Questions to include:</p>
+                          <ol className="draft-questions-list">
+                            {draftStates[item.ItemID]!.questions!.map((q, i) => (
+                              <li key={i}>{q}</li>
+                            ))}
+                          </ol>
+                        </div>
+                      )}
                       <button
                         type="button"
                         className="btn-copy"
@@ -319,6 +346,54 @@ export function ShortlistTable({
               {item.SuggestedQuestions?.[0] && (
                 <div className="shortlist-mobile-card-detail">
                   <strong>Next:</strong> {item.SuggestedQuestions[0]}
+                </div>
+              )}
+
+              {onDraftOffer && (
+                <div className="offer-draft-row" style={{ marginTop: 10 }}>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    aria-label="Draft message to seller"
+                    disabled={draftStates[item.ItemID]?.loading}
+                    onClick={() => void onDraftOffer(item.ItemID)}
+                  >
+                    {draftStates[item.ItemID]?.loading ? 'Drafting...' : 'Draft message'}
+                  </button>
+                  {draftStates[item.ItemID]?.text && (
+                    <div className="offer-draft-block">
+                      <p>{draftStates[item.ItemID]!.text}</p>
+                      {(draftStates[item.ItemID]?.offer_price ?? 0) > 0 && (
+                        <p className="draft-offer-price">
+                          Suggested offer:{' '}
+                          {draftStates[item.ItemID]!.lang === 'bg'
+                            ? `${((draftStates[item.ItemID]!.offer_price ?? 0) / 100 * 1.96).toFixed(0)} лв.`
+                            : `€${((draftStates[item.ItemID]!.offer_price ?? 0) / 100).toFixed(2)}`}
+                        </p>
+                      )}
+                      {(draftStates[item.ItemID]?.questions?.length ?? 0) > 0 && (
+                        <div className="draft-questions" data-testid="draft-questions">
+                          <p className="draft-questions-label">Questions to include:</p>
+                          <ol className="draft-questions-list">
+                            {draftStates[item.ItemID]!.questions!.map((q, i) => (
+                              <li key={i}>{q}</li>
+                            ))}
+                          </ol>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        className="btn-copy"
+                        onClick={() => {
+                          const text = draftStates[item.ItemID]?.text || '';
+                          if (!text) return;
+                          void navigator.clipboard.writeText(text);
+                        }}
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 

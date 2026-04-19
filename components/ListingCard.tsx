@@ -17,7 +17,13 @@ interface Props {
   onDraftOffer?: (itemID: string) => Promise<void>;
   onApprove?: (itemID: string) => Promise<void>;
   onDismiss?: (itemID: string) => Promise<void>;
-  draftState?: { loading: boolean; text: string | null };
+  draftState?: {
+    loading: boolean;
+    text: string | null;
+    questions?: string[];
+    offer_price?: number;
+    lang?: 'bg' | 'nl' | 'en';
+  };
   isSaved?: boolean;
 }
 
@@ -313,11 +319,12 @@ export function ListingCard({
             <button
               type="button"
               className={primary === 'draft' ? 'btn-primary' : 'btn-secondary'}
+              aria-label="Draft message to seller"
               aria-selected={primary === 'draft' ? true : undefined}
               onClick={() => void handleDraftOffer()}
               disabled={draftState?.loading}
             >
-              {draftState?.loading ? 'Drafting...' : 'Draft seller note'}
+              {draftState?.loading ? 'Drafting...' : 'Draft message'}
             </button>
           )}
           {onApprove && (
@@ -348,6 +355,24 @@ export function ListingCard({
         {draftState?.text && (
           <div className="offer-draft-block">
             <p>{draftState.text}</p>
+            {(draftState.offer_price ?? 0) > 0 && (
+              <p className="draft-offer-price">
+                Suggested offer:{' '}
+                {draftState.lang === 'bg'
+                  ? `${((draftState.offer_price ?? 0) / 100 * 1.96).toFixed(0)} лв.`
+                  : `€${((draftState.offer_price ?? 0) / 100).toFixed(2)}`}
+              </p>
+            )}
+            {(draftState.questions?.length ?? 0) > 0 && (
+              <div className="draft-questions" data-testid="draft-questions">
+                <p className="draft-questions-label">Questions to include:</p>
+                <ol className="draft-questions-list">
+                  {draftState.questions!.map((q, i) => (
+                    <li key={i}>{q}</li>
+                  ))}
+                </ol>
+              </div>
+            )}
             <button
               type="button"
               className="btn-copy"

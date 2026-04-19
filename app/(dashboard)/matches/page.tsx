@@ -54,7 +54,7 @@ export default function MatchesPage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [error, setError] = useState('');
   const [draftStates, setDraftStates] = useState<
-    Record<string, { loading: boolean; text: string | null }>
+    Record<string, { loading: boolean; text: string | null; questions?: string[]; offer_price?: number; lang?: 'bg' | 'nl' | 'en' }>
   >({});
   const [newCount, setNewCount] = useState(0);
   const {
@@ -216,11 +216,25 @@ export default function MatchesPage() {
       [itemID]: { loading: true, text: prev[itemID]?.text ?? null },
     }));
     setError('');
+    // Find the listing to get its RecommendedAction for the /draft-note verdict.
+    const listing = listings.find((l) => l.ItemID === itemID);
+    const verdict = (listing?.RecommendedAction as string | undefined) || 'ask_seller';
     try {
-      const res = await api.shortlist.draftOffer(itemID);
+      // XOL-68: use /draft-note for rich response (questions, offer_price, lang).
+      const res = await api.shortlist.draftNote(
+        itemID,
+        verdict,
+        activeMissionId > 0 ? activeMissionId : undefined,
+      );
       setDraftStates((prev) => ({
         ...prev,
-        [itemID]: { loading: false, text: res.Content || '' },
+        [itemID]: {
+          loading: false,
+          text: res.text || '',
+          questions: res.questions ?? [],
+          offer_price: res.offer_price,
+          lang: res.lang,
+        },
       }));
     } catch (err) {
       setDraftStates((prev) => ({
