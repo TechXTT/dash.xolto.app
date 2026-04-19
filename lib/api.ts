@@ -498,7 +498,9 @@ export const api = {
       });
       if (res.status === 429) {
         const body = await res.json();
-        throw Object.assign(new Error('rate_limited'), { retryAfterSeconds: body.retry_after_seconds as number });
+        throw Object.assign(new Error('rate_limited'), {
+          retryAfterSeconds: body.retry_after_seconds as number,
+        });
       }
       if (!res.ok) throw new Error('recheck failed');
       return res.json();

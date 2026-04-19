@@ -214,9 +214,7 @@ export default function MatchesPage() {
   const hasStrictConditionOnly =
     activeMissionId > 0 &&
     (currentMission?.PreferredCondition?.length ?? 0) > 0 &&
-    (currentMission?.PreferredCondition ?? []).every(
-      (c) => c === 'new' || c === 'like_new',
-    );
+    (currentMission?.PreferredCondition ?? []).every((c) => c === 'new' || c === 'like_new');
   const fetchErrorMessage = matchesError instanceof Error ? matchesError.message : '';
   const pageError = error || fetchErrorMessage;
   // total=0 with a filter set is the "no matches under these filters" state.
@@ -238,7 +236,10 @@ export default function MatchesPage() {
       const res = await api.missions.recheck(activeMissionId);
       setRecheckCooldownUntil(new Date(res.next_allowed_at));
     } catch (err: unknown) {
-      if (err instanceof Error && (err as Error & { retryAfterSeconds?: number }).retryAfterSeconds) {
+      if (
+        err instanceof Error &&
+        (err as Error & { retryAfterSeconds?: number }).retryAfterSeconds
+      ) {
         const secs = (err as Error & { retryAfterSeconds: number }).retryAfterSeconds;
         setRecheckCooldownUntil(new Date(Date.now() + secs * 1000));
       }
@@ -476,8 +477,8 @@ export default function MatchesPage() {
                 {recheckLoading
                   ? 'Checking…'
                   : recheckCooldownUntil
-                  ? `Next check in ${recheckCooldownDisplay}`
-                  : 'Check again now'}
+                    ? `Next check in ${recheckCooldownDisplay}`
+                    : 'Check again now'}
               </button>
             </div>
           )}
