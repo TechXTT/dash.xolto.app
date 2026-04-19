@@ -345,6 +345,12 @@ export function MissionForm({
               </option>
             ))}
           </select>
+          {countryCode !== 'BG' && (
+            <p className="text-xs text-muted-foreground" style={{ marginTop: 4 }}>
+              Set Country to Bulgaria to search OLX BG.{' '}
+              <a href="/settings" className="underline">Update default in Settings.</a>
+            </p>
+          )}
         </div>
 
         <div className="input-stack">
