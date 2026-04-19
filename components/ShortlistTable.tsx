@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { api, ReplyCopilotResponse, ShortlistEntry } from '../lib/api';
+import { api, OutreachStatus, ReplyCopilotResponse, ShortlistEntry } from '../lib/api';
 import { formatEuroFromCents } from '../lib/format';
 import { ScoreBar } from './ScoreBar';
 
@@ -55,6 +55,9 @@ export function ShortlistTable({
 }: Props) {
   const [removingID, setRemovingID] = useState<string | null>(null);
   const [replyStates, setReplyStates] = useState<Record<string, ReplyState>>({});
+  // XOL-79: outreach status per item (initialised from item data when first touched)
+  const [outreachStatuses, setOutreachStatuses] = useState<Record<string, OutreachStatus>>({});
+  const [outreachPending, setOutreachPending] = useState<Record<string, boolean>>({});
 
   function getReplyState(itemID: string): ReplyState {
     return (
@@ -104,6 +107,25 @@ export function ShortlistTable({
           error: err instanceof Error ? err.message : 'Failed to interpret reply',
         },
       }));
+    }
+  }
+
+  // XOL-79: cycle none→sent→replied→won→lost→none
+  const OUTREACH_CYCLE: OutreachStatus[] = ['none', 'sent', 'replied', 'won', 'lost'];
+  async function handleOutreachCycle(itemID: string) {
+    if (outreachPending[itemID]) return;
+    const current: OutreachStatus = outreachStatuses[itemID] ?? 'none';
+    const nextIndex = (OUTREACH_CYCLE.indexOf(current) + 1) % OUTREACH_CYCLE.length;
+    const nextStatus = OUTREACH_CYCLE[nextIndex];
+    const prevStatus = current;
+    setOutreachStatuses((prev) => ({ ...prev, [itemID]: nextStatus }));
+    setOutreachPending((prev) => ({ ...prev, [itemID]: true }));
+    try {
+      await api.matches.patchOutreachStatus(itemID, nextStatus);
+    } catch {
+      setOutreachStatuses((prev) => ({ ...prev, [itemID]: prevStatus }));
+    } finally {
+      setOutreachPending((prev) => ({ ...prev, [itemID]: false }));
     }
   }
 
@@ -317,6 +339,13 @@ export function ShortlistTable({
                 </div>
               )}
 
+              {/* XOL-79: outreach status badge */}
+              <ShortlistOutreachBadge
+                status={outreachStatuses[item.ItemID] ?? 'none'}
+                pending={!!outreachPending[item.ItemID]}
+                onCycle={() => void handleOutreachCycle(item.ItemID)}
+              />
+
               <ShortlistReplyPanel
                 item={item}
                 replyState={getReplyState(item.ItemID)}
@@ -483,6 +512,13 @@ export function ShortlistTable({
                 </div>
               )}
 
+              {/* XOL-79: outreach status badge */}
+              <ShortlistOutreachBadge
+                status={outreachStatuses[item.ItemID] ?? 'none'}
+                pending={!!outreachPending[item.ItemID]}
+                onCycle={() => void handleOutreachCycle(item.ItemID)}
+              />
+
               <ShortlistReplyPanel
                 item={item}
                 replyState={getReplyState(item.ItemID)}
@@ -541,6 +577,50 @@ export function ShortlistTable({
 function isStrongBuy(item: ShortlistEntry) {
   if (item.RecommendationLabel === 'buy_now') return true;
   return item.Verdict.toLowerCase().includes('strong buy');
+}
+
+// ──────────────────────────────────────────
+// XOL-79: Outreach status badge sub-component
+// ──────────────────────────────────────────
+
+const OUTREACH_LABELS: Record<OutreachStatus, string> = {
+  none: '',
+  sent: 'Sent',
+  replied: 'Replied',
+  won: 'Won \u2713',
+  lost: 'Lost',
+};
+
+function ShortlistOutreachBadge({
+  status,
+  pending,
+  onCycle,
+}: {
+  status: OutreachStatus;
+  pending: boolean;
+  onCycle: () => void;
+}) {
+  const label = OUTREACH_LABELS[status] ?? '';
+  return (
+    <div className="outreach-status-row">
+      <button
+        type="button"
+        className={`outreach-status-button outreach-status-${status}`}
+        data-testid="outreach-status-button"
+        onClick={onCycle}
+        disabled={pending}
+        aria-label={status === 'none' ? 'Track outreach' : `Outreach: ${label} — click to advance`}
+      >
+        {status === 'none' ? (
+          <span className="outreach-status-start">Track outreach</span>
+        ) : (
+          <span data-testid="outreach-status-badge" className="outreach-status-badge">
+            {pending ? '…' : label}
+          </span>
+        )}
+      </button>
+    </div>
+  );
 }
 
 // ──────────────────────────────────────────

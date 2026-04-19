@@ -5,7 +5,14 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { ListingCard } from '../../../components/ListingCard';
 import { useDashboardContext } from '../../../components/DashboardContext';
-import { api, Listing, MatchesCondition, MatchesMarket, MatchesSort } from '../../../lib/api';
+import {
+  api,
+  Listing,
+  MatchesCondition,
+  MatchesMarket,
+  MatchesSort,
+  OutreachStatus,
+} from '../../../lib/api';
 import {
   DEFAULT_MATCHES_FILTER,
   MATCHES_PAGE_SIZE,
@@ -41,6 +48,14 @@ const SORT_LABELS: Record<SortKey, string> = {
   price_asc: 'Price: low → high',
   price_desc: 'Price: high → low',
 };
+
+// XOL-79: outreach filter chips — client-side only (does not change backend query)
+const OUTREACH_FILTER_OPTIONS: { value: OutreachStatus; label: string }[] = [
+  { value: 'sent', label: 'Sent' },
+  { value: 'replied', label: 'Replied' },
+  { value: 'won', label: 'Won' },
+  { value: 'lost', label: 'Lost' },
+];
 
 const MIN_SCORE_OPTIONS = [
   { value: 0, label: 'Any score' },
@@ -80,6 +95,8 @@ export default function MatchesPage() {
   const [marketplace, setMarketplace] = useState<MarketplaceFilter>(DEFAULT_MATCHES_FILTER.market);
   const [condition, setCondition] = useState<ConditionFilter>(DEFAULT_MATCHES_FILTER.condition);
   const [minScore, setMinScore] = useState(DEFAULT_MATCHES_FILTER.minScore);
+  // XOL-79: outreach filter — client-side multi-select; empty = show all
+  const [outreachFilters, setOutreachFilters] = useState<OutreachStatus[]>([]);
 
   const [analyzeURL, setAnalyzeURL] = useState('');
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
@@ -149,11 +166,22 @@ export default function MatchesPage() {
     };
   }, [activeMissionId, missions]);
 
+  // XOL-79: client-side outreach filter applied on top of server-side results.
+  // When no outreach filter chips are selected, all listings pass through.
+  const filteredListings = useMemo(() => {
+    if (outreachFilters.length === 0) return listings;
+    return listings.filter((l) => {
+      const status: OutreachStatus = l.OutreachStatus ?? 'none';
+      return outreachFilters.includes(status);
+    });
+  }, [listings, outreachFilters]);
+
   const hasActiveFilters =
     sort !== DEFAULT_MATCHES_FILTER.sort ||
     marketplace !== DEFAULT_MATCHES_FILTER.market ||
     condition !== DEFAULT_MATCHES_FILTER.condition ||
-    minScore !== DEFAULT_MATCHES_FILTER.minScore;
+    minScore !== DEFAULT_MATCHES_FILTER.minScore ||
+    outreachFilters.length > 0;
   const currentMission = missions.find((mission) => mission.ID === activeMissionId) ?? null;
   const showLegacyFeedWithoutMissions = missions.length === 0 && listings.length > 0;
   const currentMissionStatus = (currentMission?.Status || 'active').toLowerCase();
@@ -170,6 +198,7 @@ export default function MatchesPage() {
     setMarketplace(DEFAULT_MATCHES_FILTER.market);
     setCondition(DEFAULT_MATCHES_FILTER.condition);
     setMinScore(DEFAULT_MATCHES_FILTER.minScore);
+    setOutreachFilters([]);
   }
 
   async function approveMatch(itemID: string) {
@@ -276,7 +305,7 @@ export default function MatchesPage() {
           </div>
           <div className="stat-card">
             <span className="metric-label">Showing</span>
-            <strong>{listings.length}</strong>
+            <strong>{filteredListings.length}</strong>
           </div>
           <div className="stat-card">
             <span className="metric-label">Shortlisted</span>
@@ -460,6 +489,30 @@ export default function MatchesPage() {
               </div>
             </div>
 
+            {/* XOL-79: outreach status filter — client-side multi-select */}
+            <div className="feed-filter-group">
+              <label className="feed-filter-label">Outreach</label>
+              <div className="feed-pill-group">
+                {OUTREACH_FILTER_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    data-testid={`filter-outreach-${opt.value}`}
+                    className={`feed-pill${outreachFilters.includes(opt.value) ? ' active' : ''}`}
+                    onClick={() =>
+                      setOutreachFilters((prev) =>
+                        prev.includes(opt.value)
+                          ? prev.filter((s) => s !== opt.value)
+                          : [...prev, opt.value],
+                      )
+                    }
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {hasActiveFilters && (
               <button type="button" className="feed-reset-btn" onClick={resetFilters}>
                 Reset
@@ -507,7 +560,7 @@ export default function MatchesPage() {
       ) : (
         <>
           <div className="listing-stack">
-            {listings.map((listing) => (
+            {filteredListings.map((listing) => (
               <ListingCard
                 key={listing.ItemID}
                 listing={listing}
@@ -522,7 +575,7 @@ export default function MatchesPage() {
             ))}
           </div>
           <p className="pagination-status" aria-live="polite">
-            Showing {listings.length} of {totalMatches}
+            Showing {filteredListings.length} of {totalMatches}
           </p>
           {hasNextPage && (
             <button

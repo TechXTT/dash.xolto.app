@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { api, Listing, ReplyCopilotResponse } from '../lib/api';
+import { api, Listing, OutreachStatus, ReplyCopilotResponse } from '../lib/api';
 import { comparablesChipText } from '../lib/comparables';
 import { formatBGNFromEuroCents, formatEuroFromCents, isBulgarianMarketplace } from '../lib/format';
 import { marketplaceCountryCode } from '../lib/marketplace';
@@ -103,6 +103,12 @@ export function ListingCard({
   const [saving, setSaving] = useState(false);
   const [feedbackPending, setFeedbackPending] = useState(false);
 
+  // XOL-79: Outreach deal-state machine
+  const [outreachStatus, setOutreachStatus] = useState<OutreachStatus>(
+    listing.OutreachStatus ?? 'none',
+  );
+  const [outreachPending, setOutreachPending] = useState(false);
+
   // Phase 2: Reply Copilot state
   const [replyPanelOpen, setReplyPanelOpen] = useState(false);
   const [sellerReply, setSellerReply] = useState('');
@@ -163,6 +169,24 @@ export function ListingCard({
       setReplyError(err instanceof Error ? err.message : 'Failed to interpret reply');
     } finally {
       setReplyLoading(false);
+    }
+  }
+
+  // XOL-79: cycle none→sent→replied→won→lost→none
+  const OUTREACH_CYCLE: OutreachStatus[] = ['none', 'sent', 'replied', 'won', 'lost'];
+  async function handleOutreachCycle() {
+    if (outreachPending) return;
+    const nextIndex = (OUTREACH_CYCLE.indexOf(outreachStatus) + 1) % OUTREACH_CYCLE.length;
+    const nextStatus = OUTREACH_CYCLE[nextIndex];
+    const prevStatus = outreachStatus;
+    setOutreachStatus(nextStatus);
+    setOutreachPending(true);
+    try {
+      await api.matches.patchOutreachStatus(item.ItemID, nextStatus);
+    } catch {
+      setOutreachStatus(prevStatus);
+    } finally {
+      setOutreachPending(false);
     }
   }
 
@@ -333,6 +357,12 @@ export function ListingCard({
           </div>
         )}
         {suggestedQuestion && <p className="shortlist-question">Ask seller: {suggestedQuestion}</p>}
+        {/* XOL-79: Outreach status badge — visible when status != none */}
+        <OutreachStatusBadge
+          status={outreachStatus}
+          pending={outreachPending}
+          onCycle={() => void handleOutreachCycle()}
+        />
         <div className="shortlist-actions">
           {item.URL && (
             <a
@@ -508,6 +538,47 @@ export function ListingCard({
         )}
       </div>
     </article>
+  );
+}
+
+// XOL-79: Outreach status badge sub-component
+const OUTREACH_LABELS: Record<OutreachStatus, string> = {
+  none: '',
+  sent: 'Sent',
+  replied: 'Replied',
+  won: 'Won \u2713',
+  lost: 'Lost',
+};
+
+function OutreachStatusBadge({
+  status,
+  pending,
+  onCycle,
+}: {
+  status: OutreachStatus;
+  pending: boolean;
+  onCycle: () => void;
+}) {
+  const label = OUTREACH_LABELS[status] ?? '';
+  return (
+    <div className="outreach-status-row">
+      <button
+        type="button"
+        className={`outreach-status-button outreach-status-${status}`}
+        data-testid="outreach-status-button"
+        onClick={onCycle}
+        disabled={pending}
+        aria-label={status === 'none' ? 'Track outreach' : `Outreach: ${label} — click to advance`}
+      >
+        {status === 'none' ? (
+          <span className="outreach-status-start">Track outreach</span>
+        ) : (
+          <span data-testid="outreach-status-badge" className="outreach-status-badge">
+            {pending ? '…' : label}
+          </span>
+        )}
+      </button>
+    </div>
   );
 }
 

@@ -107,7 +107,16 @@ export type Listing = {
   // Renderer uses "converted_from_bgn" to show an "≈ from BGN" caption.
   CurrencyStatus?: 'eur_native' | 'converted_from_bgn' | 'unknown' | '';
   Feedback?: '' | 'approved' | 'dismissed';
+  // OutreachStatus tracks deal-state for a saved listing (XOL-79, C-6).
+  // Emitted by the backend on the /matches envelope (PascalCase from Go).
+  // Wire values: "none" | "sent" | "replied" | "won" | "lost"
+  // Default is "none" (no outreach started). Optional for backward-compat.
+  OutreachStatus?: OutreachStatus;
 };
+
+// OutreachStatus is the EXHAUSTIVE set of deal-state values for a listing
+// (XOL-79, C-6). Any other value from the wire is treated as "none".
+export type OutreachStatus = 'none' | 'sent' | 'replied' | 'won' | 'lost';
 
 export type MatchFeedbackAction = 'approve' | 'dismiss' | 'clear';
 
@@ -426,6 +435,14 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ item_id: itemID, action }),
       }),
+    patchOutreachStatus: async (itemID: string, status: OutreachStatus) =>
+      apiFetch<{ outreach_status: string }>(
+        `/listings/${encodeURIComponent(itemID)}/outreach-status`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ status }),
+        },
+      ),
     analyze: async (url: string, missionID?: number) =>
       apiFetch<{
         listing: Listing;
