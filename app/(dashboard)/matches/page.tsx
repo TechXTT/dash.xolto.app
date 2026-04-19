@@ -187,6 +187,12 @@ export default function MatchesPage() {
   const currentMissionStatus = (currentMission?.Status || 'active').toLowerCase();
   const missionPaused = activeMissionId > 0 && currentMissionStatus === 'paused';
   const missionCompleted = activeMissionId > 0 && currentMissionStatus === 'completed';
+  const hasStrictConditionOnly =
+    activeMissionId > 0 &&
+    (currentMission?.PreferredCondition?.length ?? 0) > 0 &&
+    (currentMission?.PreferredCondition ?? []).every(
+      (c) => c === 'new' || c === 'like_new',
+    );
   const fetchErrorMessage = matchesError instanceof Error ? matchesError.message : '';
   const pageError = error || fetchErrorMessage;
   // total=0 with a filter set is the "no matches under these filters" state.
@@ -555,7 +561,20 @@ export default function MatchesPage() {
       ) : listings.length === 0 && !error ? (
         <div className="surface-panel empty-state">
           <h3>No matches yet for this mission</h3>
-          <p>Keep monitors running or broaden budget/condition constraints in your mission.</p>
+          {hasStrictConditionOnly ? (
+            <>
+              <p>
+                Listings exist on OLX.bg but none match your <strong>New / Like new</strong>{' '}
+                condition preference. Try relaxing the condition filter to include{' '}
+                <strong>Good</strong> or <strong>Fair</strong> listings.
+              </p>
+              <Link href="/missions" className="btn-secondary">
+                Edit mission
+              </Link>
+            </>
+          ) : (
+            <p>Keep monitors running or broaden budget/condition constraints in your mission.</p>
+          )}
         </div>
       ) : (
         <>
