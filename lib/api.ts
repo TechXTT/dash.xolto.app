@@ -491,6 +491,18 @@ export const api = {
       const limit = params?.limit ? `?limit=${params.limit}` : '';
       return apiFetch<{ mission: Mission; listings: Listing[] }>(`/missions/${id}/matches${limit}`);
     },
+    recheck: async (missionId: number): Promise<{ ok: boolean; next_allowed_at: string }> => {
+      const res = await fetch(`${API_BASE}/missions/${missionId}/recheck`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (res.status === 429) {
+        const body = await res.json();
+        throw Object.assign(new Error('rate_limited'), { retryAfterSeconds: body.retry_after_seconds as number });
+      }
+      if (!res.ok) throw new Error('recheck failed');
+      return res.json();
+    },
   },
   shortlist: {
     get: async () => apiFetch<{ shortlist: ShortlistEntry[] }>('/shortlist'),

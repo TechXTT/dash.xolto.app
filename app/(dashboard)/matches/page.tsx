@@ -98,6 +98,10 @@ export default function MatchesPage() {
   // XOL-79: outreach filter — client-side multi-select; empty = show all
   const [outreachFilters, setOutreachFilters] = useState<OutreachStatus[]>([]);
 
+  const [recheckLoading, setRecheckLoading] = useState(false);
+  const [recheckCooldownUntil, setRecheckCooldownUntil] = useState<Date | null>(null);
+  const [recheckCooldownDisplay, setRecheckCooldownDisplay] = useState('');
+
   const [analyzeURL, setAnalyzeURL] = useState('');
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
   const [analyzeError, setAnalyzeError] = useState('');
@@ -132,7 +136,27 @@ export default function MatchesPage() {
   useEffect(() => {
     setNewCount(0);
     setDraftStates({});
+    setRecheckCooldownUntil(null);
+    setRecheckCooldownDisplay('');
   }, [activeMissionId]);
+
+  useEffect(() => {
+    if (!recheckCooldownUntil) return;
+    const tick = () => {
+      const secsLeft = Math.ceil((recheckCooldownUntil.getTime() - Date.now()) / 1000);
+      if (secsLeft <= 0) {
+        setRecheckCooldownUntil(null);
+        setRecheckCooldownDisplay('');
+        return;
+      }
+      const m = Math.floor(secsLeft / 60);
+      const s = secsLeft % 60;
+      setRecheckCooldownDisplay(m > 0 ? `${m}m ${s}s` : `${s}s`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [recheckCooldownUntil]);
 
   // Items from the hook ARE the rendered list (server-filtered + sorted +
   // paginated). We mirror into local state only so feedback mutations
@@ -205,6 +229,22 @@ export default function MatchesPage() {
     setCondition(DEFAULT_MATCHES_FILTER.condition);
     setMinScore(DEFAULT_MATCHES_FILTER.minScore);
     setOutreachFilters([]);
+  }
+
+  async function triggerRecheck() {
+    if (!activeMissionId || recheckLoading || recheckCooldownUntil) return;
+    setRecheckLoading(true);
+    try {
+      const res = await api.missions.recheck(activeMissionId);
+      setRecheckCooldownUntil(new Date(res.next_allowed_at));
+    } catch (err: unknown) {
+      if (err instanceof Error && (err as Error & { retryAfterSeconds?: number }).retryAfterSeconds) {
+        const secs = (err as Error & { retryAfterSeconds: number }).retryAfterSeconds;
+        setRecheckCooldownUntil(new Date(Date.now() + secs * 1000));
+      }
+    } finally {
+      setRecheckLoading(false);
+    }
   }
 
   async function approveMatch(itemID: string) {
@@ -424,6 +464,22 @@ export default function MatchesPage() {
           </div>
           {currentMission && (
             <p className="section-support">Active mission: {currentMission.Name}</p>
+          )}
+          {activeMissionId > 0 && (
+            <div style={{ marginTop: 10 }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => void triggerRecheck()}
+                disabled={recheckLoading || !!recheckCooldownUntil}
+              >
+                {recheckLoading
+                  ? 'Checking…'
+                  : recheckCooldownUntil
+                  ? `Next check in ${recheckCooldownDisplay}`
+                  : 'Check again now'}
+              </button>
+            </div>
           )}
         </div>
       </section>
