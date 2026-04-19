@@ -359,7 +359,7 @@ export function ListingCard({
               <p className="draft-offer-price">
                 Suggested offer:{' '}
                 {draftState.lang === 'bg'
-                  ? `${(((draftState.offer_price ?? 0) / 100) * 1.95583).toFixed(0)} лв.`
+                  ? `€${((draftState.offer_price ?? 0) / 100).toFixed(2)} (${(((draftState.offer_price ?? 0) / 100) * 1.95583).toFixed(0)} лв.)`
                   : `€${((draftState.offer_price ?? 0) / 100).toFixed(2)}`}
               </p>
             )}
