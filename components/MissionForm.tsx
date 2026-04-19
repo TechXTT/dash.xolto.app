@@ -42,7 +42,7 @@ export function MissionForm({
   const [conditions, setConditions] = useState<string[]>(['like_new', 'good']);
   const [mustHaveInput, setMustHaveInput] = useState('');
   const [mustHaves, setMustHaves] = useState<string[]>([]);
-  const [countryCode, setCountryCode] = useState('NL');
+  const [countryCode, setCountryCode] = useState('BG');
   const [region, setRegion] = useState('');
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
@@ -59,7 +59,7 @@ export function MissionForm({
   );
 
   useEffect(() => {
-    const nextCountry = initialMission?.CountryCode || user?.country_code || 'NL';
+    const nextCountry = initialMission?.CountryCode || user?.country_code || 'BG';
     const nextCrossBorder = Boolean(
       initialMission?.CrossBorderEnabled ?? user?.cross_border_enabled,
     );
