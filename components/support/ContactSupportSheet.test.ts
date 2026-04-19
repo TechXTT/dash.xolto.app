@@ -25,7 +25,7 @@ import {
   buildSupportDashContext,
   shouldShowSupportCta,
   validateSupportForm,
-} from '../../lib/support';
+} from '../../lib/supportUtils.ts';
 
 test('validateSupportForm rejects subject shorter than MIN_SUBJECT', () => {
   const short = 'a'.repeat(MIN_SUBJECT - 1);
