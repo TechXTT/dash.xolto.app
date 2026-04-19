@@ -83,7 +83,13 @@ export function ShortlistTable({
     if (!rs.sellerReply.trim() || rs.loading) return;
     setReplyStates((prev) => ({
       ...prev,
-      [item.ItemID]: { ...getReplyState(item.ItemID), ...prev[item.ItemID], loading: true, result: null, error: '' },
+      [item.ItemID]: {
+        ...getReplyState(item.ItemID),
+        ...prev[item.ItemID],
+        loading: true,
+        result: null,
+        error: '',
+      },
     }));
     try {
       const result = await api.shortlist.replyCopilot({
@@ -95,7 +101,12 @@ export function ShortlistTable({
       });
       setReplyStates((prev) => ({
         ...prev,
-        [item.ItemID]: { ...getReplyState(item.ItemID), ...prev[item.ItemID], loading: false, result },
+        [item.ItemID]: {
+          ...getReplyState(item.ItemID),
+          ...prev[item.ItemID],
+          loading: false,
+          result,
+        },
       }));
     } catch (err) {
       setReplyStates((prev) => ({
@@ -668,11 +679,7 @@ function ShortlistReplyPanel({
 }) {
   return (
     <div style={style}>
-      <button
-        type="button"
-        className="btn-ghost reply-copilot-btn"
-        onClick={onToggle}
-      >
+      <button type="button" className="btn-ghost reply-copilot-btn" onClick={onToggle}>
         Seller replied?
       </button>
       {replyState.open && (
@@ -733,10 +740,7 @@ function ShortlistReplyPanel({
                 </div>
               )}
               <div className="reply-copilot-draft-block">
-                <pre
-                  className="reply-copilot-draft-text"
-                  data-testid="reply-draft-message"
-                >
+                <pre className="reply-copilot-draft-text" data-testid="reply-draft-message">
                   {replyState.result.draft_next_message}
                 </pre>
                 <button

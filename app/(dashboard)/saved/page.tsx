@@ -173,11 +173,7 @@ export default function SavedPage() {
 
       {showPanel && (
         <div className="compare-panel" data-testid="compare-panel">
-          <button
-            type="button"
-            className="compare-panel-close"
-            onClick={() => setShowPanel(false)}
-          >
+          <button type="button" className="compare-panel-close" onClick={() => setShowPanel(false)}>
             ✕ Close
           </button>
           <div className="compare-table-scroll">

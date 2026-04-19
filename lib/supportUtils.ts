@@ -8,10 +8,7 @@ export const MAX_MESSAGE = 5000;
 
 export type SupportFormValidation = { ok: true } | { ok: false; message: string };
 
-export function validateSupportForm(
-  subject: string,
-  message: string,
-): SupportFormValidation {
+export function validateSupportForm(subject: string, message: string): SupportFormValidation {
   const s = subject.trim();
   const m = message.trim();
   if (s.length < MIN_SUBJECT) {

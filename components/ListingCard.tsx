@@ -354,7 +354,8 @@ export function ListingCard({
         )}
         {item.RiskFlags?.includes('off_platform_redirect') && (
           <div className="scam-warning-banner" data-testid="scam-warning-banner">
-            ⚠ This seller is asking you to communicate outside OLX.bg — a common scam pattern. Proceed with extreme caution.
+            ⚠ This seller is asking you to communicate outside OLX.bg — a common scam pattern.
+            Proceed with extreme caution.
           </div>
         )}
         {suggestedQuestion && <p className="shortlist-question">Ask seller: {suggestedQuestion}</p>}
