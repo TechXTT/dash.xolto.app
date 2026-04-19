@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { Listing } from '../lib/api';
+import { api, Listing, ReplyCopilotResponse } from '../lib/api';
 import { comparablesChipText } from '../lib/comparables';
 import { formatBGNFromEuroCents, formatEuroFromCents, isBulgarianMarketplace } from '../lib/format';
 import { marketplaceCountryCode } from '../lib/marketplace';
@@ -25,6 +25,7 @@ interface Props {
     lang?: 'bg' | 'nl' | 'en';
   };
   isSaved?: boolean;
+  missionId?: number;
 }
 
 const MARKETPLACE_LABELS: Record<string, string> = {
@@ -73,6 +74,7 @@ export function ListingCard({
   onDismiss,
   draftState,
   isSaved = false,
+  missionId,
 }: Props) {
   const item = listing;
   const score = (listing.Score ?? 0) > 0 ? listing.Score : undefined;
@@ -100,6 +102,13 @@ export function ListingCard({
 
   const [saving, setSaving] = useState(false);
   const [feedbackPending, setFeedbackPending] = useState(false);
+
+  // Phase 2: Reply Copilot state
+  const [replyPanelOpen, setReplyPanelOpen] = useState(false);
+  const [sellerReply, setSellerReply] = useState('');
+  const [replyLoading, setReplyLoading] = useState(false);
+  const [replyResult, setReplyResult] = useState<ReplyCopilotResponse | null>(null);
+  const [replyError, setReplyError] = useState('');
 
   async function handleShortlist() {
     if (!onShortlist || saving || isSaved) return;
@@ -133,6 +142,27 @@ export function ListingCard({
       await onDismiss(item.ItemID);
     } finally {
       setFeedbackPending(false);
+    }
+  }
+
+  async function handleInterpretReply() {
+    if (!sellerReply.trim() || replyLoading) return;
+    setReplyLoading(true);
+    setReplyError('');
+    setReplyResult(null);
+    try {
+      const result = await api.shortlist.replyCopilot({
+        listing_id: item.ItemID,
+        seller_reply: sellerReply,
+        mission_id: missionId && missionId > 0 ? String(missionId) : '',
+        our_offer_price: draftState?.offer_price ?? 0,
+        verdict: (listing.RecommendedAction as string) || '',
+      });
+      setReplyResult(result);
+    } catch (err) {
+      setReplyError(err instanceof Error ? err.message : 'Failed to interpret reply');
+    } finally {
+      setReplyLoading(false);
     }
   }
 
@@ -327,6 +357,17 @@ export function ListingCard({
               {draftState?.loading ? 'Drafting...' : 'Draft message'}
             </button>
           )}
+          <button
+            type="button"
+            className="btn-ghost reply-copilot-btn"
+            onClick={() => {
+              setReplyPanelOpen((v) => !v);
+              setReplyResult(null);
+              setReplyError('');
+            }}
+          >
+            Seller replied?
+          </button>
           {onApprove && (
             <button
               type="button"
@@ -385,6 +426,86 @@ export function ListingCard({
             </button>
           </div>
         )}
+        {replyPanelOpen && (
+          <div className="reply-copilot-panel">
+            <div className="reply-copilot-panel-header">
+              <span className="reply-copilot-panel-title">Interpret seller reply</span>
+              <button
+                type="button"
+                className="reply-copilot-close"
+                aria-label="Close reply panel"
+                onClick={() => {
+                  setReplyPanelOpen(false);
+                  setReplyResult(null);
+                  setReplyError('');
+                  setSellerReply('');
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <label className="reply-copilot-label" htmlFor={`seller-reply-${item.ItemID}`}>
+              Paste seller reply
+            </label>
+            <textarea
+              id={`seller-reply-${item.ItemID}`}
+              className="reply-copilot-textarea"
+              rows={3}
+              placeholder="Paste the seller's reply here…"
+              value={sellerReply}
+              onChange={(e) => setSellerReply(e.target.value)}
+              disabled={replyLoading}
+            />
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => void handleInterpretReply()}
+              disabled={replyLoading || !sellerReply.trim()}
+            >
+              {replyLoading ? (
+                <>
+                  <span className="reply-copilot-spinner" aria-hidden="true" />
+                  Interpreting…
+                </>
+              ) : (
+                'Interpret reply'
+              )}
+            </button>
+            {replyError && <p className="reply-copilot-error">{replyError}</p>}
+            {replyResult && (
+              <div className="reply-copilot-result">
+                <div className="reply-copilot-interpretation">
+                  <InterpretationBadge interpretation={replyResult.interpretation} />
+                </div>
+                <p className="reply-copilot-action">
+                  <RecommendedActionLabel
+                    action={replyResult.recommended_action}
+                    offerPrice={replyResult.offer_price}
+                  />
+                </p>
+                {replyResult.confidence === 'low' && (
+                  <div className="reply-copilot-amber-banner">
+                    Reply is ambiguous — review carefully before responding.
+                  </div>
+                )}
+                <div className="reply-copilot-draft-block">
+                  <pre className="reply-copilot-draft-text" data-testid="reply-draft-message">
+                    {replyResult.draft_next_message}
+                  </pre>
+                  <button
+                    type="button"
+                    className="btn-copy"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(replyResult.draft_next_message);
+                    }}
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </article>
   );
@@ -403,4 +524,48 @@ function firstSuggestedQuestion(riskFlags: string[]) {
     }
   }
   return 'Can you confirm condition and included accessories?';
+}
+
+function InterpretationBadge({
+  interpretation,
+}: {
+  interpretation: ReplyCopilotResponse['interpretation'];
+}) {
+  const configs: Record<
+    ReplyCopilotResponse['interpretation'],
+    { label: string; className: string }
+  > = {
+    negotiable: { label: 'Open to negotiation', className: 'reply-badge reply-badge-negotiable' },
+    firm: { label: 'Holding firm', className: 'reply-badge reply-badge-firm' },
+    low_signal: { label: 'Unclear reply', className: 'reply-badge reply-badge-low-signal' },
+    risky: { label: 'Risky — proceed carefully', className: 'reply-badge reply-badge-risky' },
+  };
+  const cfg = configs[interpretation] ?? configs['low_signal'];
+  return <span className={cfg.className}>{cfg.label}</span>;
+}
+
+function RecommendedActionLabel({
+  action,
+  offerPrice,
+}: {
+  action: ReplyCopilotResponse['recommended_action'];
+  offerPrice?: number;
+}) {
+  switch (action) {
+    case 'counter':
+      return (
+        <>
+          {'→ Counter offer'}
+          {offerPrice != null && offerPrice > 0 ? ` at €${(offerPrice / 100).toFixed(2)}` : ''}
+        </>
+      );
+    case 'ask_seller':
+      return <>{'→ Ask for clarification'}</>;
+    case 'accept':
+      return <>{'→ Accept the price'}</>;
+    case 'skip':
+      return <>{'→ Skip this listing'}</>;
+    default:
+      return <>{action}</>;
+  }
 }

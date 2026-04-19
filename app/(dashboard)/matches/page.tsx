@@ -517,6 +517,7 @@ export default function MatchesPage() {
                 onApprove={activeMissionId > 0 ? approveMatch : undefined}
                 onDismiss={activeMissionId > 0 ? dismissMatch : undefined}
                 draftState={draftStates[listing.ItemID]}
+                missionId={activeMissionId > 0 ? activeMissionId : undefined}
               />
             ))}
           </div>

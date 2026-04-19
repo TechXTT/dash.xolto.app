@@ -3065,3 +3065,196 @@
     margin-left: 0;
   }
 }
+
+/* ──────────────────────────────────────────
+   XOL-74: Reply Copilot — Phase 2
+────────────────────────────────────────── */
+
+.reply-copilot-btn {
+  margin-top: 4px;
+  font-size: 0.84rem;
+}
+
+.reply-copilot-panel {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.82);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.reply-copilot-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.reply-copilot-panel-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--fg-700);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.reply-copilot-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--fg-400);
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.reply-copilot-close:hover {
+  color: var(--fg-700);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.reply-copilot-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--fg-600);
+}
+
+.reply-copilot-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xs);
+  padding: 8px 10px;
+  font-size: 0.88rem;
+  color: var(--fg-900);
+  background: var(--surface-raised);
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.reply-copilot-textarea:focus {
+  outline: none;
+  border-color: var(--border-brand);
+}
+
+.reply-copilot-textarea:disabled {
+  opacity: 0.56;
+}
+
+.reply-copilot-error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--danger-600);
+  background: rgba(254, 242, 242, 0.7);
+  border-radius: var(--radius-xs);
+  padding: 6px 10px;
+  border-left: 2px solid rgba(220, 38, 38, 0.3);
+}
+
+.reply-copilot-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.reply-copilot-interpretation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reply-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.reply-badge-negotiable {
+  background: rgba(22, 163, 74, 0.12);
+  color: #15803d;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+.reply-badge-firm {
+  background: rgba(234, 88, 12, 0.1);
+  color: #c2410c;
+  border: 1px solid rgba(234, 88, 12, 0.2);
+}
+
+.reply-badge-low-signal {
+  background: rgba(100, 116, 139, 0.1);
+  color: #475569;
+  border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.reply-badge-risky {
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--danger-600);
+  border: 1px solid rgba(220, 38, 38, 0.18);
+}
+
+.reply-copilot-action {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--fg-800);
+}
+
+.reply-copilot-amber-banner {
+  font-size: 0.82rem;
+  color: #92400e;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(217, 119, 6, 0.25);
+  border-radius: var(--radius-xs);
+  padding: 7px 10px;
+}
+
+.reply-copilot-draft-block {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.reply-copilot-draft-text {
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--fg-700);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Spinner for loading state */
+.reply-copilot-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: reply-spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes reply-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -123,6 +123,26 @@ export type DraftNoteResponse = {
   offer_price?: number;
 };
 
+// ReplyCopilotResponse is the envelope returned by POST /reply-copilot (XOL-73/XOL-74).
+// `offer_price` is omitempty — only present for `counter` action, in EUR cents.
+export type ReplyCopilotResponse = {
+  interpretation: 'negotiable' | 'firm' | 'low_signal' | 'risky';
+  recommended_action: 'counter' | 'ask_seller' | 'accept' | 'skip';
+  draft_next_message: string;
+  confidence: 'high' | 'medium' | 'low';
+  signals: string[];
+  lang: 'bg' | 'en' | 'nl';
+  offer_price?: number;
+};
+
+export type ReplyCopilotParams = {
+  listing_id: string;
+  seller_reply: string;
+  mission_id: string;
+  our_offer_price: number;
+  verdict: string;
+};
+
 export type MatchesPage = {
   items: Listing[];
   limit: number;
@@ -468,6 +488,13 @@ export const api = {
           verdict,
           ...(missionId && missionId > 0 ? { mission_id: missionId } : {}),
         }),
+      }),
+    // replyCopilot calls POST /reply-copilot (XOL-73/XOL-74). Returns
+    // interpretation, recommended action, draft next message and confidence.
+    replyCopilot: async (params: ReplyCopilotParams): Promise<ReplyCopilotResponse> =>
+      apiFetch<ReplyCopilotResponse>('/reply-copilot', {
+        method: 'POST',
+        body: JSON.stringify(params),
       }),
   },
   assistant: {

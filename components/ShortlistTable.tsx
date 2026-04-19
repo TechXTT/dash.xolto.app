@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { ShortlistEntry } from '../lib/api';
+import { api, ReplyCopilotResponse, ShortlistEntry } from '../lib/api';
 import { formatEuroFromCents } from '../lib/format';
 import { ScoreBar } from './ScoreBar';
 
@@ -13,6 +13,14 @@ type DraftState = {
   questions?: string[];
   offer_price?: number;
   lang?: 'bg' | 'nl' | 'en';
+};
+
+type ReplyState = {
+  open: boolean;
+  sellerReply: string;
+  loading: boolean;
+  result: ReplyCopilotResponse | null;
+  error: string;
 };
 
 type Props = {
@@ -46,6 +54,58 @@ export function ShortlistTable({
   onToggleSelect,
 }: Props) {
   const [removingID, setRemovingID] = useState<string | null>(null);
+  const [replyStates, setReplyStates] = useState<Record<string, ReplyState>>({});
+
+  function getReplyState(itemID: string): ReplyState {
+    return (
+      replyStates[itemID] ?? {
+        open: false,
+        sellerReply: '',
+        loading: false,
+        result: null,
+        error: '',
+      }
+    );
+  }
+
+  function setReplyField<K extends keyof ReplyState>(itemID: string, key: K, value: ReplyState[K]) {
+    setReplyStates((prev) => ({
+      ...prev,
+      [itemID]: { ...getReplyState(itemID), ...prev[itemID], [key]: value },
+    }));
+  }
+
+  async function handleInterpretReply(item: ShortlistEntry) {
+    const rs = getReplyState(item.ItemID);
+    if (!rs.sellerReply.trim() || rs.loading) return;
+    setReplyStates((prev) => ({
+      ...prev,
+      [item.ItemID]: { ...getReplyState(item.ItemID), ...prev[item.ItemID], loading: true, result: null, error: '' },
+    }));
+    try {
+      const result = await api.shortlist.replyCopilot({
+        listing_id: item.ItemID,
+        seller_reply: rs.sellerReply,
+        mission_id: item.MissionID ? String(item.MissionID) : '',
+        our_offer_price: draftStates[item.ItemID]?.offer_price ?? 0,
+        verdict: item.Verdict || '',
+      });
+      setReplyStates((prev) => ({
+        ...prev,
+        [item.ItemID]: { ...getReplyState(item.ItemID), ...prev[item.ItemID], loading: false, result },
+      }));
+    } catch (err) {
+      setReplyStates((prev) => ({
+        ...prev,
+        [item.ItemID]: {
+          ...getReplyState(item.ItemID),
+          ...prev[item.ItemID],
+          loading: false,
+          error: err instanceof Error ? err.message : 'Failed to interpret reply',
+        },
+      }));
+    }
+  }
 
   if (items.length === 0) {
     return (
@@ -257,6 +317,32 @@ export function ShortlistTable({
                 </div>
               )}
 
+              <ShortlistReplyPanel
+                item={item}
+                replyState={getReplyState(item.ItemID)}
+                onToggle={() => {
+                  const rs = getReplyState(item.ItemID);
+                  setReplyStates((prev) => ({
+                    ...prev,
+                    [item.ItemID]: { ...rs, open: !rs.open, result: null, error: '' },
+                  }));
+                }}
+                onSellerReplyChange={(val) => setReplyField(item.ItemID, 'sellerReply', val)}
+                onSubmit={() => void handleInterpretReply(item)}
+                onClose={() => {
+                  setReplyStates((prev) => ({
+                    ...prev,
+                    [item.ItemID]: {
+                      open: false,
+                      sellerReply: '',
+                      loading: false,
+                      result: null,
+                      error: '',
+                    },
+                  }));
+                }}
+              />
+
               {onRemove && (
                 <div className="shortlist-actions">
                   <button
@@ -397,6 +483,33 @@ export function ShortlistTable({
                 </div>
               )}
 
+              <ShortlistReplyPanel
+                item={item}
+                replyState={getReplyState(item.ItemID)}
+                onToggle={() => {
+                  const rs = getReplyState(item.ItemID);
+                  setReplyStates((prev) => ({
+                    ...prev,
+                    [item.ItemID]: { ...rs, open: !rs.open, result: null, error: '' },
+                  }));
+                }}
+                onSellerReplyChange={(val) => setReplyField(item.ItemID, 'sellerReply', val)}
+                onSubmit={() => void handleInterpretReply(item)}
+                onClose={() => {
+                  setReplyStates((prev) => ({
+                    ...prev,
+                    [item.ItemID]: {
+                      open: false,
+                      sellerReply: '',
+                      loading: false,
+                      result: null,
+                      error: '',
+                    },
+                  }));
+                }}
+                style={{ marginTop: 10 }}
+              />
+
               {onRemove && (
                 <div className="shortlist-actions" style={{ marginTop: 10 }}>
                   <button
@@ -428,4 +541,160 @@ export function ShortlistTable({
 function isStrongBuy(item: ShortlistEntry) {
   if (item.RecommendationLabel === 'buy_now') return true;
   return item.Verdict.toLowerCase().includes('strong buy');
+}
+
+// ──────────────────────────────────────────
+// Reply Copilot shared sub-components
+// ──────────────────────────────────────────
+
+function ShortlistReplyPanel({
+  item,
+  replyState,
+  onToggle,
+  onSellerReplyChange,
+  onSubmit,
+  onClose,
+  style,
+}: {
+  item: ShortlistEntry;
+  replyState: ReplyState;
+  onToggle: () => void;
+  onSellerReplyChange: (val: string) => void;
+  onSubmit: () => void;
+  onClose: () => void;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <div style={style}>
+      <button
+        type="button"
+        className="btn-ghost reply-copilot-btn"
+        onClick={onToggle}
+      >
+        Seller replied?
+      </button>
+      {replyState.open && (
+        <div className="reply-copilot-panel">
+          <div className="reply-copilot-panel-header">
+            <span className="reply-copilot-panel-title">Interpret seller reply</span>
+            <button
+              type="button"
+              className="reply-copilot-close"
+              aria-label="Close reply panel"
+              onClick={onClose}
+            >
+              ✕
+            </button>
+          </div>
+          <label className="reply-copilot-label" htmlFor={`seller-reply-${item.ItemID}`}>
+            Paste seller reply
+          </label>
+          <textarea
+            id={`seller-reply-${item.ItemID}`}
+            className="reply-copilot-textarea"
+            rows={3}
+            placeholder="Paste the seller's reply here…"
+            value={replyState.sellerReply}
+            onChange={(e) => onSellerReplyChange(e.target.value)}
+            disabled={replyState.loading}
+          />
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={onSubmit}
+            disabled={replyState.loading || !replyState.sellerReply.trim()}
+          >
+            {replyState.loading ? (
+              <>
+                <span className="reply-copilot-spinner" aria-hidden="true" />
+                Interpreting…
+              </>
+            ) : (
+              'Interpret reply'
+            )}
+          </button>
+          {replyState.error && <p className="reply-copilot-error">{replyState.error}</p>}
+          {replyState.result && (
+            <div className="reply-copilot-result">
+              <div className="reply-copilot-interpretation">
+                <ShortlistInterpretationBadge interpretation={replyState.result.interpretation} />
+              </div>
+              <p className="reply-copilot-action">
+                <ShortlistRecommendedActionLabel
+                  action={replyState.result.recommended_action}
+                  offerPrice={replyState.result.offer_price}
+                />
+              </p>
+              {replyState.result.confidence === 'low' && (
+                <div className="reply-copilot-amber-banner">
+                  Reply is ambiguous — review carefully before responding.
+                </div>
+              )}
+              <div className="reply-copilot-draft-block">
+                <pre
+                  className="reply-copilot-draft-text"
+                  data-testid="reply-draft-message"
+                >
+                  {replyState.result.draft_next_message}
+                </pre>
+                <button
+                  type="button"
+                  className="btn-copy"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(replyState.result!.draft_next_message);
+                  }}
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ShortlistInterpretationBadge({
+  interpretation,
+}: {
+  interpretation: ReplyCopilotResponse['interpretation'];
+}) {
+  const configs: Record<
+    ReplyCopilotResponse['interpretation'],
+    { label: string; className: string }
+  > = {
+    negotiable: { label: 'Open to negotiation', className: 'reply-badge reply-badge-negotiable' },
+    firm: { label: 'Holding firm', className: 'reply-badge reply-badge-firm' },
+    low_signal: { label: 'Unclear reply', className: 'reply-badge reply-badge-low-signal' },
+    risky: { label: 'Risky — proceed carefully', className: 'reply-badge reply-badge-risky' },
+  };
+  const cfg = configs[interpretation] ?? configs['low_signal'];
+  return <span className={cfg.className}>{cfg.label}</span>;
+}
+
+function ShortlistRecommendedActionLabel({
+  action,
+  offerPrice,
+}: {
+  action: ReplyCopilotResponse['recommended_action'];
+  offerPrice?: number;
+}) {
+  switch (action) {
+    case 'counter':
+      return (
+        <>
+          {'→ Counter offer'}
+          {offerPrice != null && offerPrice > 0 ? ` at €${(offerPrice / 100).toFixed(2)}` : ''}
+        </>
+      );
+    case 'ask_seller':
+      return <>{'→ Ask for clarification'}</>;
+    case 'accept':
+      return <>{'→ Accept the price'}</>;
+    case 'skip':
+      return <>{'→ Skip this listing'}</>;
+    default:
+      return <>{action}</>;
+  }
 }
