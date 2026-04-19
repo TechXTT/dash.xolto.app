@@ -357,9 +357,7 @@ export function ListingCard({
           </div>
         )}
         {daysAgo(item.Date) !== null && (
-          <span className="text-xs text-muted-foreground">
-            Last seen {daysAgo(item.Date)}d ago
-          </span>
+          <span className="text-xs text-muted-foreground">Last seen {daysAgo(item.Date)}d ago</span>
         )}
         {item.RiskFlags?.includes('off_platform_redirect') && (
           <div className="scam-warning-banner" data-testid="scam-warning-banner">
@@ -604,9 +602,7 @@ function OutreachSentChip({ sentAt }: { sentAt: string }) {
   if (d.getFullYear() < 2020) return null;
   const diffDays = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
   const label =
-    diffDays <= 0
-      ? 'Sent today \u00b7 no reply yet'
-      : `Sent ${diffDays}d ago \u00b7 no reply yet`;
+    diffDays <= 0 ? 'Sent today \u00b7 no reply yet' : `Sent ${diffDays}d ago \u00b7 no reply yet`;
   return (
     <span
       className="text-xs text-muted-foreground"
