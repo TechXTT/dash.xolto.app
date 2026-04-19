@@ -242,6 +242,11 @@ export type ShortlistEntry = {
   Concerns: string[];
   SuggestedQuestions: string[];
   Status: string;
+  // Joined from listings table via LEFT JOIN on item_id (XOL-82).
+  // Zero-value / absent when no listing row exists yet.
+  Condition?: string;
+  MarketplaceID?: string;
+  OutreachStatus?: OutreachStatus;
 };
 
 export type AssistantReply = {

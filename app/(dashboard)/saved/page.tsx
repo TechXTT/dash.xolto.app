@@ -222,7 +222,7 @@ export default function SavedPage() {
                 <tr>
                   <td>Condition</td>
                   {selectedListings.map((l) => (
-                    <td key={l.ItemID}>{'—'}</td>
+                    <td key={l.ItemID}>{l.Condition || '—'}</td>
                   ))}
                 </tr>
                 <tr>
@@ -234,7 +234,7 @@ export default function SavedPage() {
                 <tr>
                   <td>Outreach</td>
                   {selectedListings.map((l) => (
-                    <td key={l.ItemID}>{'none'}</td>
+                    <td key={l.ItemID}>{l.OutreachStatus || 'none'}</td>
                   ))}
                 </tr>
               </tbody>
