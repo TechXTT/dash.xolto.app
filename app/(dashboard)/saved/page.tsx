@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { useDashboardContext } from '../../../components/DashboardContext';
 import { ShortlistTable } from '../../../components/ShortlistTable';
 import { api, ShortlistEntry } from '../../../lib/api';
+import { conditionLabel } from '../../../lib/condition';
 import { formatEuroFromCents } from '../../../lib/format';
 
 // Maps shortlist RecommendationLabel → /draft-note verdict parameter.
@@ -218,7 +219,7 @@ export default function SavedPage() {
                 <tr>
                   <td>Condition</td>
                   {selectedListings.map((l) => (
-                    <td key={l.ItemID}>{l.Condition || '—'}</td>
+                    <td key={l.ItemID}>{conditionLabel(l.Condition)}</td>
                   ))}
                 </tr>
                 <tr>
