@@ -10,6 +10,7 @@ export const FLAG_LABEL: Record<string, string> = {
   unclear_bundle: 'Bundle unclear',
   refurbished_ambiguity: 'Refurb status unclear',
   off_platform_redirect: '⚠ Off-platform contact',
+  stale_listing: 'May be sold — check availability',
 };
 
 /**

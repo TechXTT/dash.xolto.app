@@ -12,6 +12,10 @@ test('flagLabel: off_platform_redirect → "⚠ Off-platform contact"', () => {
   assert.equal(flagLabel('off_platform_redirect'), '⚠ Off-platform contact');
 });
 
+test('flagLabel: stale_listing → "May be sold — check availability"', () => {
+  assert.equal(flagLabel('stale_listing'), 'May be sold \u2014 check availability');
+});
+
 test('flagLabel: unknown_flag → "unknown flag" (underscore-to-space fallback)', () => {
   assert.equal(flagLabel('unknown_flag'), 'unknown flag');
 });

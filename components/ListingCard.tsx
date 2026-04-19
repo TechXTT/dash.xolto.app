@@ -352,6 +352,11 @@ export function ListingCard({
             ))}
           </div>
         )}
+        {daysAgo(item.Date) !== null && (
+          <span className="text-xs text-muted-foreground">
+            Last seen {daysAgo(item.Date)}d ago
+          </span>
+        )}
         {item.RiskFlags?.includes('off_platform_redirect') && (
           <div className="scam-warning-banner" data-testid="scam-warning-banner">
             ⚠ This seller is asking you to communicate outside OLX.bg — a common scam pattern.
@@ -615,6 +620,14 @@ function InterpretationBadge({
   };
   const cfg = configs[interpretation] ?? configs['low_signal'];
   return <span className={cfg.className}>{cfg.label}</span>;
+}
+
+function daysAgo(isoDate: string | undefined): number | null {
+  if (!isoDate) return null;
+  const d = new Date(isoDate);
+  if (d.getFullYear() < 2020) return null;
+  const diff = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
+  return diff > 0 ? diff : null;
 }
 
 function RecommendedActionLabel({

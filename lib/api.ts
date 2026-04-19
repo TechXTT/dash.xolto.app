@@ -97,6 +97,9 @@ export type Listing = {
   // Optional on the type for backward-compat with older cached responses;
   // renderer coalesces missing/null to `[]` (chip row hidden).
   MustHaves?: MustHave[];
+  // Date is the last_seen ISO timestamp from the backend. Zero Go time serializes
+  // as "0001-01-01T00:00:00Z" — callers must guard for year < 2020.
+  Date?: string;
   // CurrencyStatus signals how the Price field reached its EUR-cents value.
   // Emitted by the backend on the /matches envelope (PascalCase from Go).
   // Wire values:
