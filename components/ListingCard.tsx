@@ -430,6 +430,9 @@ export function ListingCard({
             </button>
           )}
         </div>
+        {outreachStatus === 'sent' && listing.OutreachSentAt && (
+          <OutreachSentChip sentAt={listing.OutreachSentAt} />
+        )}
         {draftState?.text && (
           <div className="offer-draft-block">
             <p>{draftState.text}</p>
@@ -586,6 +589,28 @@ function OutreachStatusBadge({
         )}
       </button>
     </div>
+  );
+}
+
+// XOL-24: Reply-time chip — shown when outreach_status=sent and outreach_sent_at present.
+// Computes days elapsed independently of the existing daysAgo() helper because
+// daysAgo() returns null for same-day dates (diff === 0), but we want "Sent today".
+function OutreachSentChip({ sentAt }: { sentAt: string }) {
+  const d = new Date(sentAt);
+  if (d.getFullYear() < 2020) return null;
+  const diffDays = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
+  const label =
+    diffDays <= 0
+      ? 'Sent today \u00b7 no reply yet'
+      : `Sent ${diffDays}d ago \u00b7 no reply yet`;
+  return (
+    <span
+      className="text-xs text-muted-foreground"
+      data-testid="outreach-sent-chip"
+      style={{ display: 'block', marginTop: 4 }}
+    >
+      {label}
+    </span>
   );
 }
 

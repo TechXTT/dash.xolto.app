@@ -115,6 +115,10 @@ export type Listing = {
   // Wire values: "none" | "sent" | "replied" | "won" | "lost"
   // Default is "none" (no outreach started). Optional for backward-compat.
   OutreachStatus?: OutreachStatus;
+  // OutreachSentAt is the ISO timestamp when the user first sent an outreach
+  // message for this listing (XOL-24). Present only when OutreachStatus is
+  // "sent" (or later). Optional — omitted when no outreach has been sent.
+  OutreachSentAt?: string;
 };
 
 // OutreachStatus is the EXHAUSTIVE set of deal-state values for a listing
