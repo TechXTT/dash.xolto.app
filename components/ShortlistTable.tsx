@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { api, OutreachStatus, ReplyCopilotResponse, ShortlistEntry } from '../lib/api';
 import { formatEuroFromCents } from '../lib/format';
 import { ScoreBar } from './ScoreBar';
+import { SendReviewModal } from './SendReviewModal';
 
 type DraftState = {
   loading: boolean;
@@ -58,6 +59,9 @@ export function ShortlistTable({
   // XOL-79: outreach status per item (initialised from item data when first touched)
   const [outreachStatuses, setOutreachStatuses] = useState<Record<string, OutreachStatus>>({});
   const [outreachPending, setOutreachPending] = useState<Record<string, boolean>>({});
+  // XOL-107: send modal + toast per item
+  const [sendModalItemID, setSendModalItemID] = useState<string | null>(null);
+  const [sendToastItemID, setSendToastItemID] = useState<string | null>(null);
 
   function getReplyState(itemID: string): ReplyState {
     return (
@@ -348,17 +352,36 @@ export function ShortlistTable({
                       )}
                       <button
                         type="button"
-                        className="btn-copy"
-                        onClick={() => {
-                          const text = draftStates[item.ItemID]?.text || '';
-                          if (!text) return;
-                          void navigator.clipboard.writeText(text);
-                        }}
+                        className="btn-send"
+                        data-testid="send-draft-button"
+                        onClick={() => setSendModalItemID(item.ItemID)}
                       >
-                        Copy
+                        Send
                       </button>
                     </div>
                   )}
+                </div>
+              )}
+              {sendModalItemID === item.ItemID && draftStates[item.ItemID]?.text && (
+                <SendReviewModal
+                  draftText={draftStates[item.ItemID]!.text!}
+                  itemURL={item.URL || '#'}
+                  itemTitle={item.Title}
+                  offerPrice={draftStates[item.ItemID]?.offer_price}
+                  offerLang={draftStates[item.ItemID]?.lang}
+                  questions={draftStates[item.ItemID]?.questions}
+                  onConfirm={() => {
+                    setSendModalItemID(null);
+                    void api.matches.patchOutreachStatus(item.ItemID, 'sent').catch(() => null);
+                    setSendToastItemID(item.ItemID);
+                    setTimeout(() => setSendToastItemID(null), 2800);
+                  }}
+                  onCancel={() => setSendModalItemID(null)}
+                />
+              )}
+              {sendToastItemID === item.ItemID && (
+                <div className="xol107-toast" role="status" data-testid="send-toast">
+                  Message copied — paste it in OLX chat
                 </div>
               )}
 
@@ -531,17 +554,36 @@ export function ShortlistTable({
                       )}
                       <button
                         type="button"
-                        className="btn-copy"
-                        onClick={() => {
-                          const text = draftStates[item.ItemID]?.text || '';
-                          if (!text) return;
-                          void navigator.clipboard.writeText(text);
-                        }}
+                        className="btn-send"
+                        data-testid="send-draft-button"
+                        onClick={() => setSendModalItemID(item.ItemID)}
                       >
-                        Copy
+                        Send
                       </button>
                     </div>
                   )}
+                </div>
+              )}
+              {sendModalItemID === item.ItemID && draftStates[item.ItemID]?.text && (
+                <SendReviewModal
+                  draftText={draftStates[item.ItemID]!.text!}
+                  itemURL={item.URL || '#'}
+                  itemTitle={item.Title}
+                  offerPrice={draftStates[item.ItemID]?.offer_price}
+                  offerLang={draftStates[item.ItemID]?.lang}
+                  questions={draftStates[item.ItemID]?.questions}
+                  onConfirm={() => {
+                    setSendModalItemID(null);
+                    void api.matches.patchOutreachStatus(item.ItemID, 'sent').catch(() => null);
+                    setSendToastItemID(item.ItemID);
+                    setTimeout(() => setSendToastItemID(null), 2800);
+                  }}
+                  onCancel={() => setSendModalItemID(null)}
+                />
+              )}
+              {sendToastItemID === item.ItemID && (
+                <div className="xol107-toast" role="status" data-testid="send-toast">
+                  Message copied — paste it in OLX chat
                 </div>
               )}
 

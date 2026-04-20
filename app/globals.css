@@ -3358,3 +3358,186 @@
   cursor: pointer;
   margin-right: 8px;
 }
+
+/* ──────────────────────────────────────────
+   XOL-107: Send Review Modal
+────────────────────────────────────────── */
+
+.send-review-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 21, 16, 0.55);
+  backdrop-filter: blur(4px);
+  padding: 16px;
+  animation: onboarding-fade-in 220ms ease-out;
+}
+
+.send-review-card {
+  width: min(480px, 100%);
+  background: var(--surface-strong);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow: var(--shadow-xl);
+  border-radius: var(--radius-xl);
+  padding: 28px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.send-review-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--fg-900);
+  letter-spacing: -0.02em;
+}
+
+.send-review-item-title {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--fg-300);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.send-review-textarea {
+  width: 100%;
+  min-height: 160px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--fg-700);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.send-review-textarea:focus {
+  outline: 2px solid var(--brand-600);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.send-review-offer-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--brand-100);
+  color: var(--brand-700);
+  font-size: 0.82rem;
+  font-weight: 700;
+  align-self: flex-start;
+}
+
+.send-review-questions {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.send-review-questions-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--fg-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.send-review-questions-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.send-review-questions-list li {
+  font-size: 0.88rem;
+  color: var(--fg-700);
+  line-height: 1.45;
+}
+
+.send-review-clipboard-warning {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--warning-500);
+  font-weight: 600;
+}
+
+.send-review-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.send-review-confirm,
+.send-review-cancel {
+  width: 100%;
+  min-height: 48px;
+  font-size: 0.95rem;
+}
+
+/* ──────────────────────────────────────────
+   XOL-107: Simple inline toast
+────────────────────────────────────────── */
+
+.xol107-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  background: var(--surface-dark);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-xl);
+  pointer-events: none;
+  white-space: nowrap;
+  animation: xol107-toast-in 180ms ease-out;
+}
+
+@keyframes xol107-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* btn-send: same visual as btn-copy but labelled Send */
+.btn-send {
+  justify-self: start;
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-raised);
+  color: var(--fg-700);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-send:hover {
+  border-color: var(--border-brand);
+  color: var(--brand-700);
+  background: var(--brand-100);
+}

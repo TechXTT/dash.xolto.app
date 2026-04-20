@@ -11,6 +11,7 @@ import { parseReason } from '../lib/reason';
 import { actionVerdict, primaryCta } from '../lib/verdict';
 import { flagLabel } from '../lib/flags';
 import { CurrencyStatusBadge } from './CurrencyStatusBadge';
+import { SendReviewModal } from './SendReviewModal';
 
 interface Props {
   listing: Listing;
@@ -108,6 +109,10 @@ export function ListingCard({
     listing.OutreachStatus ?? 'none',
   );
   const [outreachPending, setOutreachPending] = useState(false);
+
+  // XOL-107: Pre-send review modal state
+  const [sendModalOpen, setSendModalOpen] = useState(false);
+  const [sendToast, setSendToast] = useState(false);
 
   // Phase 2: Reply Copilot state
   const [replyPanelOpen, setReplyPanelOpen] = useState(false);
@@ -462,14 +467,34 @@ export function ListingCard({
             )}
             <button
               type="button"
-              className="btn-copy"
-              onClick={() => {
-                if (!draftState.text) return;
-                void navigator.clipboard.writeText(draftState.text);
-              }}
+              className="btn-send"
+              data-testid="send-draft-button"
+              onClick={() => setSendModalOpen(true)}
             >
-              Copy
+              Send
             </button>
+          </div>
+        )}
+        {sendModalOpen && draftState?.text && (
+          <SendReviewModal
+            draftText={draftState.text}
+            itemURL={item.URL || '#'}
+            itemTitle={item.Title}
+            offerPrice={draftState.offer_price}
+            offerLang={draftState.lang}
+            questions={draftState.questions}
+            onConfirm={() => {
+              setSendModalOpen(false);
+              void api.matches.patchOutreachStatus(item.ItemID, 'sent').catch(() => null);
+              setSendToast(true);
+              setTimeout(() => setSendToast(false), 2800);
+            }}
+            onCancel={() => setSendModalOpen(false)}
+          />
+        )}
+        {sendToast && (
+          <div className="xol107-toast" role="status" data-testid="send-toast">
+            Message copied — paste it in OLX chat
           </div>
         )}
         {replyPanelOpen && (
