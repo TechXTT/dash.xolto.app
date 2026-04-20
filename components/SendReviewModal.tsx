@@ -51,7 +51,12 @@ export function SendReviewModal({
       : null;
 
   return (
-    <div className="send-review-backdrop" role="dialog" aria-modal="true" aria-labelledby="srm-title">
+    <div
+      className="send-review-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="srm-title"
+    >
       <div className="send-review-card">
         <h2 id="srm-title" className="send-review-title">
           Review your message
