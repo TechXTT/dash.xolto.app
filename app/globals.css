@@ -2259,6 +2259,17 @@
     line-height: 1.4;
   }
 
+  /* Comparables confidence modifiers — XOL-104.
+     none (count=0): muted grey — no price data yet.
+     low  (count 1–4): amber warning — low-confidence estimate. */
+  .evidence-chip--muted {
+    opacity: 0.6;
+  }
+
+  .evidence-chip--warning {
+    color: var(--warning-500);
+  }
+
   /* Must-have match indicator — XOL-18 v0.8 "Did this match what I asked for?"
      Per-status palette reuses the verdict-pill tokens so green/red/gray read
      consistent with the rest of the decisional surface. Keeps the chip base
