@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { api, Listing, OutreachStatus, ReplyCopilotResponse } from '../lib/api';
-import { comparablesChipText } from '../lib/comparables';
+import { comparablesChipText, comparablesConfidenceLevel } from '../lib/comparables';
 import { formatBGNFromEuroCents, formatEuroFromCents, isBulgarianMarketplace } from '../lib/format';
 import { marketplaceCountryCode } from '../lib/marketplace';
 import { mustHaveChipStyle } from '../lib/musthaves';
@@ -91,6 +91,7 @@ export function ListingCard({
     listing.ComparablesMedianAgeDays,
     listingCountry,
   );
+  const comparablesLevel = comparablesConfidenceLevel(listing.ComparablesCount);
   // Reason may be empty or malformed (no "|" separator); in that case
   // `chips` is empty and we fall back to the raw reason text so nothing is lost.
   const parsedReason = parseReason(reason ?? '');
@@ -247,7 +248,10 @@ export function ListingCard({
             </div>
             {comparablesText && (
               <div className="listing-evidence-row">
-                <span className="evidence-chip" data-testid="comparables-chip">
+                <span
+                  className={`evidence-chip${comparablesLevel === 'none' ? ' evidence-chip--muted' : comparablesLevel === 'low' ? ' evidence-chip--warning' : ''}`}
+                  data-testid="comparables-chip"
+                >
                   {comparablesText}
                 </span>
               </div>
