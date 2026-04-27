@@ -8,6 +8,7 @@ import {
   useAdminUsageQuery,
   useAdminUsersQuery,
 } from '../../../lib/queries/admin';
+import { tierDisplayLabel } from '../../../lib/tier';
 
 type Tab = 'overview' | 'users' | 'usage';
 
@@ -270,7 +271,9 @@ function OverviewTab({
                   {topAIUser.ai_call_count.toLocaleString()} calls
                 </span>
                 <span className="subtle-pill">{topAIUser.ai_tokens.toLocaleString()} tokens</span>
-                <span className={`tier-badge tier-${topAIUser.tier}`}>{topAIUser.tier}</span>
+                <span className={`tier-badge tier-${topAIUser.tier}`}>
+                  {tierDisplayLabel(topAIUser.tier)}
+                </span>
               </div>
             </>
           ) : (
@@ -335,7 +338,9 @@ function UsersTab({ users }: { users: AdminUser[] }) {
                   </div>
                 </td>
                 <td>
-                  <span className={`tier-badge tier-${entry.tier}`}>{entry.tier}</span>
+                  <span className={`tier-badge tier-${entry.tier}`}>
+                    {tierDisplayLabel(entry.tier)}
+                  </span>
                 </td>
                 <td>
                   <div className="admin-stack-cell">

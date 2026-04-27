@@ -2825,6 +2825,133 @@
       transform: translateY(0);
     }
   }
+
+  /* ──────────────────────────────────────────
+     Onboarding Tooltip (W18-5 — replaces 5-step modal)
+     Reuses existing design tokens; no new colors / shadows / font sizes.
+  ────────────────────────────────────────── */
+
+  .onboarding-tip {
+    position: fixed;
+    top: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: min(440px, calc(100% - 32px));
+    animation: onboarding-slide-up 280ms ease-out;
+    pointer-events: none;
+  }
+
+  .onboarding-tip.exit {
+    animation: onboarding-fade-out 200ms ease-in forwards;
+  }
+
+  .onboarding-tip-card {
+    pointer-events: auto;
+    background: var(--surface-strong);
+    border: 1px solid var(--border-brand);
+    box-shadow: var(--shadow-xl);
+    border-radius: var(--radius-lg);
+    padding: 14px 14px 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .onboarding-tip-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .onboarding-tip-title {
+    margin: 0 0 4px;
+    font-weight: 700;
+    color: var(--fg-900);
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
+  }
+
+  .onboarding-tip-copy {
+    margin: 0;
+    color: var(--fg-500);
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .onboarding-tip-close {
+    flex-shrink: 0;
+    background: var(--brand-600);
+    color: #fff;
+    border: 0;
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    min-height: 36px;
+  }
+
+  .onboarding-tip-close:hover {
+    background: var(--brand-700, var(--brand-600));
+  }
+
+  @media (max-width: 480px) {
+    .onboarding-tip {
+      top: 64px;
+    }
+  }
+
+  /* ──────────────────────────────────────────
+     Mission Form — Advanced disclosure (W18-5)
+     Native <details>/<summary>; reuses existing tokens.
+  ────────────────────────────────────────── */
+
+  .mission-advanced {
+    margin-top: 18px;
+    border-top: 1px solid var(--border-strong);
+    padding-top: 14px;
+  }
+
+  .mission-advanced-summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--fg-900);
+    font-size: 0.95rem;
+    list-style: none;
+    padding: 8px 0;
+    user-select: none;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mission-advanced-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mission-advanced-summary::before {
+    content: '+';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: var(--brand-50);
+    color: var(--brand-600);
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1;
+  }
+
+  .mission-advanced[open] > .mission-advanced-summary::before {
+    content: '−';
+  }
+
+  .mission-advanced-body {
+    margin-top: 8px;
+  }
 }
 
 /* ─── Admin Dashboard ────────────────────────────────────────────── */
@@ -3540,4 +3667,38 @@
   border-color: var(--border-brand);
   color: var(--brand-700);
   background: var(--brand-100);
+}
+
+/* W18-6: Today's verdict distribution chip — read-only single line on the
+   /matches header. Reuses existing fg-500 muted tone; no new tokens. */
+.verdict-distribution-chip {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--fg-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* W18-6: Skip-verdict card treatment — muted-but-prominent. Card body is
+   de-emphasized (subtle desat + lighter border) so users can scan past it,
+   while the existing `action-verdict-skip` pill stays unmissable. The pill
+   gains a dotted outline + uppercase label to look distinct from the other
+   three solid pills, signalling "walk away" not "celebrate". Buy / Negotiate
+   / Ask seller cards remain untouched. */
+.listing-card--skip {
+  opacity: 0.75;
+  background: rgba(220, 230, 224, 0.45);
+  border-color: rgba(100, 116, 139, 0.18);
+}
+
+.listing-card--skip:hover {
+  opacity: 1;
+}
+
+.listing-card--skip .action-verdict-skip {
+  background: transparent;
+  border-style: dashed;
+  border-color: rgba(100, 116, 139, 0.55);
+  color: var(--fg-500);
 }

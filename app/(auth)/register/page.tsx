@@ -5,11 +5,19 @@ import { useEffect, useState } from 'react';
 
 import { api } from '../../../lib/api';
 import { useAuthProvidersQuery } from '../../../lib/queries/auth';
+import { TIER_DISPLAY_LABELS } from '../../../lib/tier';
 
-/* plan = captured pre-auth pricing intent from landing CTAs */
+/* plan = captured pre-auth pricing intent from landing CTAs.
+   Internal slugs (pro/power) are the wire format; display labels are
+   sourced from the shared TIER_DISPLAY_LABELS map (W18, 2026-04-25 rename):
+     pro slug   → display "Buyer" (mid tier)
+     power slug → display "Pro"   (top tier) */
 const VALID_PLANS = ['pro', 'power'] as const;
 type PlanIntent = (typeof VALID_PLANS)[number];
-const PLAN_LABELS: Record<PlanIntent, string> = { pro: 'Pro', power: 'Power' };
+const PLAN_LABELS: Record<PlanIntent, string> = {
+  pro: TIER_DISPLAY_LABELS.pro,
+  power: TIER_DISPLAY_LABELS.power,
+};
 
 function parsePlanIntent(raw: string | null): PlanIntent | null {
   if (!raw) return null;

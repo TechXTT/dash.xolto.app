@@ -6,13 +6,30 @@ import { usePathname } from 'next/navigation';
 import { useDashboardContext } from '../../../components/DashboardContext';
 import ContactSupportSheet from '../../../components/support/ContactSupportSheet';
 import { api, SUPPORTED_COUNTRIES } from '../../../lib/api';
+import { TIER_DISPLAY_LABELS } from '../../../lib/tier';
 
-const TIER_LABELS: Record<string, string> = { free: 'Free', pro: 'Pro', power: 'Power' };
+/* BGN dual-currency display. 1 EUR = 1.9558 BGN, BGN to 2 decimals. */
+const TIER_PRICE_LABELS: Record<string, string> = {
+  pro: '€9 (17.60 лв.)',
+  power: '€29 (56.72 лв.)',
+};
+
+/* Stripe price ID env-var resolution for the W18 tier rename. The env var
+   NEXT_PUBLIC_STRIPE_PRO_PRICE_ID changed meaning (was mid tier, now top tier),
+   so a naive per-field fallback can misroute checkouts. Migration state is
+   detected by the presence of NEXT_PUBLIC_STRIPE_BUYER_PRICE_ID:
+     - set       => migrated. Use new env-var meanings.
+     - unset     => legacy. Fall back: PRO=mid tier, POWER=top tier. */
+const _BUYER_NEW = process.env.NEXT_PUBLIC_STRIPE_BUYER_PRICE_ID;
+const _PRO_LEGACY_OR_NEW = process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+const _POWER_LEGACY = process.env.NEXT_PUBLIC_STRIPE_POWER_PRICE_ID;
+const STRIPE_BUYER_PRICE_ID = _BUYER_NEW || _PRO_LEGACY_OR_NEW;
+const STRIPE_PRO_PRICE_ID = _BUYER_NEW ? _PRO_LEGACY_OR_NEW : _POWER_LEGACY;
 
 /* upgrade = authenticated checkout trigger from plan-intent registration flow */
 const PLAN_PRICE_IDS: Record<string, string | undefined> = {
-  pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
-  power: process.env.NEXT_PUBLIC_STRIPE_POWER_PRICE_ID,
+  pro: STRIPE_BUYER_PRICE_ID,
+  power: STRIPE_PRO_PRICE_ID,
 };
 
 export default function SettingsPage() {
@@ -147,7 +164,7 @@ export default function SettingsPage() {
   async function handleCheckout(priceID: string) {
     if (!priceID) {
       setError(
-        'Stripe is not configured. Set NEXT_PUBLIC_STRIPE_PRO_PRICE_ID / NEXT_PUBLIC_STRIPE_POWER_PRICE_ID in .env.local.',
+        'Stripe is not configured. Set NEXT_PUBLIC_STRIPE_BUYER_PRICE_ID / NEXT_PUBLIC_STRIPE_PRO_PRICE_ID in .env.local.',
       );
       return;
     }
@@ -200,7 +217,7 @@ export default function SettingsPage() {
         </div>
         <div className="stat-card">
           <span className="metric-label">Current plan</span>
-          <strong>{TIER_LABELS[user.tier] ?? user.tier}</strong>
+          <strong>{TIER_DISPLAY_LABELS[user.tier] ?? user.tier}</strong>
         </div>
       </section>
 
@@ -227,7 +244,7 @@ export default function SettingsPage() {
             </div>
             <div className="settings-row">
               <span>Plan</span>
-              <strong>{TIER_LABELS[user.tier] ?? user.tier}</strong>
+              <strong>{TIER_DISPLAY_LABELS[user.tier] ?? user.tier}</strong>
             </div>
             <div className="settings-row">
               <span>Sign-in methods</span>
@@ -352,38 +369,34 @@ export default function SettingsPage() {
         {user.tier === 'free' ? (
           <section className="surface-panel premium-card">
             <p className="section-kicker">Upgrade</p>
-            <h3>Unlock faster scans and more active hunts</h3>
+            <h3>Run more missions and unlock the full reply copilot</h3>
             <p className="section-support">
-              Choose the plan that fits how aggressively you want xolto to monitor the market.
+              Choose the plan that fits how many simultaneous hunts you want to run.
             </p>
 
             <div className="plan-grid">
               <PlanCard
-                name="Pro"
-                price="€9"
+                name="Buyer"
+                price={TIER_PRICE_LABELS.pro}
                 features={[
-                  '10 active missions',
-                  '2 marketplaces per mission',
-                  '5 minute polling',
-                  'Google + email sign-in',
+                  '10 missions',
+                  'AI search generation',
+                  'Full assistant access',
+                  'Fuller reply copilot',
                 ]}
-                onUpgrade={() =>
-                  void handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID ?? '')
-                }
+                onUpgrade={() => void handleCheckout(STRIPE_BUYER_PRICE_ID ?? '')}
               />
               <PlanCard
-                name="Power"
-                price="€29"
+                name="Pro"
+                price={TIER_PRICE_LABELS.power}
                 highlight
                 features={[
                   'Unlimited missions',
-                  '5 marketplaces per mission',
-                  '1 minute polling',
-                  'First-priority alerts',
+                  'Priority polling',
+                  'AI search generation',
+                  'Full reply copilot',
                 ]}
-                onUpgrade={() =>
-                  void handleCheckout(process.env.NEXT_PUBLIC_STRIPE_POWER_PRICE_ID ?? '')
-                }
+                onUpgrade={() => void handleCheckout(STRIPE_PRO_PRICE_ID ?? '')}
               />
             </div>
           </section>

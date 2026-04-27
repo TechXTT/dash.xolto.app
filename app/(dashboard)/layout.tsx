@@ -10,6 +10,7 @@ import { LocationSetupOverlay } from '../../components/LocationSetupOverlay';
 import { OnboardingOverlay, shouldShowOnboarding } from '../../components/OnboardingOverlay';
 import { api, Mission, ShortlistEntry, User } from '../../lib/api';
 import { normalizeShortlist } from '../../lib/shortlist';
+import { tierDisplayLabel } from '../../lib/tier';
 
 function IconAI() {
   return (
@@ -428,7 +429,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <div className="sidebar-avatar">{initialsForUser(user)}</div>
               <div className="sidebar-user-copy">
                 <p className="sidebar-user-name">{user?.name || user?.email}</p>
-                <p className="sidebar-user-tier">{user?.tier || 'free'} plan</p>
+                <p className="sidebar-user-tier">{tierDisplayLabel(user?.tier)} plan</p>
               </div>
             </div>
             <button
