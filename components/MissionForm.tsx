@@ -37,7 +37,7 @@ export function MissionForm({
   const { user } = useDashboardContext();
   const [name, setName] = useState('');
   const [targetQuery, setTargetQuery] = useState('');
-  const [category, setCategory] = useState<'phone' | 'laptop' | 'camera' | 'other'>('phone');
+  const [category, setCategory] = useState<'phone' | 'laptop' | 'camera' | 'other'>('camera');
   const [budgetMax, setBudgetMax] = useState(900);
   const [conditions, setConditions] = useState<string[]>(['like_new', 'good']);
   const [mustHaveInput, setMustHaveInput] = useState('');
@@ -69,7 +69,9 @@ export function MissionForm({
 
     setName(initialMission?.Name || '');
     setTargetQuery(initialMission?.TargetQuery || initialMission?.Name || '');
-    setCategory((initialMission?.Category as 'phone' | 'laptop' | 'camera' | 'other') || 'phone');
+    setCategory(
+      (initialMission?.Category as 'phone' | 'laptop' | 'camera' | 'other') || 'camera',
+    );
     setBudgetMax(initialMission?.BudgetMax || 900);
     setConditions(
       initialMission?.PreferredCondition?.length
@@ -135,8 +137,14 @@ export function MissionForm({
   }
 
   async function submit() {
-    if (!name.trim()) {
-      setError('Give the mission a clear name first.');
+    // Mission Name was a separate visible field in the v1 form; W18-5 hides
+    // it (the buyer types target query + budget + city only, in that order).
+    // Derive Name from TargetQuery so the backend contract is unchanged.
+    // Edit-mode keeps any user-set Name when TargetQuery is empty.
+    const queryTrimmed = targetQuery.trim();
+    const derivedName = (name.trim() || queryTrimmed).trim();
+    if (!derivedName) {
+      setError('Tell us what to hunt — type a target query first.');
       return;
     }
     if (!countryCode) {
@@ -151,9 +159,9 @@ export function MissionForm({
     setError('');
     setLoading(true);
     try {
-      const normalizedQuery = (targetQuery.trim() || name.trim()).toLowerCase();
+      const normalizedQuery = (queryTrimmed || derivedName).toLowerCase();
       const payload: Partial<Mission> = {
-        Name: name.trim(),
+        Name: derivedName,
         TargetQuery: normalizedQuery,
         BudgetMax: budgetMax,
         BudgetStretch: Math.round(budgetMax * 1.1),
@@ -163,7 +171,7 @@ export function MissionForm({
           new Set(
             [
               normalizedQuery,
-              name.trim().toLowerCase(),
+              derivedName.toLowerCase(),
               ...mustHaves.map((value) => value.toLowerCase()),
             ].filter(Boolean),
           ),
@@ -195,7 +203,7 @@ export function MissionForm({
       <div className="section-heading">
         <div>
           <p className="section-kicker">
-            {initialMission?.ID ? 'Edit mission' : 'Structured mission'}
+            {initialMission?.ID ? 'Edit mission' : 'New mission'}
           </p>
           <h3>
             {initialMission?.ID
@@ -207,50 +215,31 @@ export function MissionForm({
 
       {error && <div className="error-msg">{error}</div>}
 
-      <div className="location-grid">
-        <div className="input-stack">
-          <label className="label" htmlFor="mission-name">
-            Mission name
-          </label>
-          <input
-            id="mission-name"
-            className="input"
-            placeholder="Sony A6700 travel kit"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-
-        <div className="input-stack">
-          <label className="label" htmlFor="mission-query">
-            Search query
-          </label>
-          <input
-            id="mission-query"
-            className="input"
-            placeholder="sony a6700"
-            value={targetQuery}
-            onChange={(e) => setTargetQuery(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="feed-pill-group" style={{ marginBottom: 14 }}>
-        {(['phone', 'laptop', 'camera', 'other'] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            className={`feed-pill${category === value ? ' active' : ''}`}
-            onClick={() => setCategory(value)}
-          >
-            {value}
-          </button>
-        ))}
-      </div>
-
-      <div style={{ marginTop: 14 }}>
-        <label className="feed-filter-label">Budget (EUR): {budgetMax}</label>
+      {/* W18-5: 3 default fields visible above the fold (target query,
+          budget, city). All other inputs (conditions, must-haves, country,
+          region, postal code, travel radius, cross-border, marketplace
+          selection, mission name) live behind the Advanced disclosure
+          below. Defaults: country=BG, marketplace=OLX BG (XOL-93). */}
+      <div className="input-stack">
+        <label className="label" htmlFor="mission-query">
+          What are you looking for?
+        </label>
         <input
+          id="mission-query"
+          className="input"
+          placeholder="Sony α6000"
+          value={targetQuery}
+          onChange={(e) => setTargetQuery(e.target.value)}
+          autoFocus
+        />
+      </div>
+
+      <div className="input-stack" style={{ marginTop: 14 }}>
+        <label className="feed-filter-label" htmlFor="mission-budget">
+          Budget (EUR): {budgetMax}
+        </label>
+        <input
+          id="mission-budget"
           type="range"
           min={100}
           max={4000}
@@ -261,183 +250,215 @@ export function MissionForm({
         />
       </div>
 
-      <div className="feed-filter-group" style={{ marginTop: 14 }}>
-        <label className="feed-filter-label">Condition</label>
-        <div className="feed-pill-group">
-          {CONDITIONS.map((value) => (
-            <button
-              key={value}
-              type="button"
-              className={`feed-pill${conditions.includes(value) ? ' active' : ''}`}
-              onClick={() => toggleCondition(value)}
-            >
-              {value}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="feed-filter-group" style={{ marginTop: 14 }}>
-        <label className="feed-filter-label">Must-haves</label>
-        <div className="generator-bar">
-          <input
-            className="input"
-            placeholder="Type a must-have and press Enter"
-            value={mustHaveInput}
-            onChange={(e) => setMustHaveInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                addMustHave(mustHaveInput);
-              }
-            }}
-          />
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={() => addMustHave(mustHaveInput)}
-          >
-            Add
-          </button>
-        </div>
-        <div className="feed-pill-group" style={{ marginTop: 10 }}>
-          {CATEGORY_SUGGESTIONS[category].map((suggestion) => (
-            <button
-              key={suggestion}
-              type="button"
-              className="feed-pill"
-              onClick={() => addMustHave(suggestion)}
-            >
-              + {suggestion}
-            </button>
-          ))}
-          {mustHaves.map((value) => (
-            <button
-              key={value}
-              type="button"
-              className="feed-pill active"
-              onClick={() => setMustHaves((prev) => prev.filter((entry) => entry !== value))}
-            >
-              {value} ×
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="feed-filter-group" style={{ marginTop: 18 }}>
-        <label className="feed-filter-label">Location</label>
-      </div>
-
-      <div className="location-grid">
-        <div className="input-stack">
-          <label className="label" htmlFor="mission-country">
-            Country
-          </label>
-          <select
-            id="mission-country"
-            className="input"
-            value={countryCode}
-            onChange={(e) => setCountryCode(e.target.value)}
-          >
-            {SUPPORTED_COUNTRIES.map((country) => (
-              <option key={country.code} value={country.code}>
-                {country.label}
-              </option>
-            ))}
-          </select>
-          {countryCode !== 'BG' && (
-            <p className="text-xs text-muted-foreground" style={{ marginTop: 4 }}>
-              Set Country to Bulgaria to search OLX BG.{' '}
-              <a href="/settings" className="underline">
-                Update default in Settings.
-              </a>
-            </p>
-          )}
-        </div>
-
-        <div className="input-stack">
-          <label className="label" htmlFor="mission-radius">
-            Travel radius (km)
-          </label>
-          <input
-            id="mission-radius"
-            type="number"
-            min={1}
-            max={500}
-            className="input"
-            value={travelRadius}
-            onChange={(e) => setTravelRadius(Number(e.target.value) || 1)}
-          />
-        </div>
-
-        <div className="input-stack">
-          <label className="label" htmlFor="mission-city">
-            City
-          </label>
-          <input
-            id="mission-city"
-            className="input"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="Amsterdam"
-          />
-        </div>
-
-        <div className="input-stack">
-          <label className="label" htmlFor="mission-region">
-            Region
-          </label>
-          <input
-            id="mission-region"
-            className="input"
-            value={region}
-            onChange={(e) => setRegion(e.target.value)}
-            placeholder="North Holland"
-          />
-        </div>
-
-        <div className="input-stack">
-          <label className="label" htmlFor="mission-postal">
-            Postal code
-          </label>
-          <input
-            id="mission-postal"
-            className="input"
-            value={postalCode}
-            onChange={(e) => setPostalCode(e.target.value)}
-            placeholder="1012 AB"
-          />
-        </div>
-      </div>
-
-      <label className="checkbox-row">
+      <div className="input-stack" style={{ marginTop: 14 }}>
+        <label className="label" htmlFor="mission-city">
+          City
+        </label>
         <input
-          type="checkbox"
-          checked={crossBorderEnabled}
-          onChange={(e) => setCrossBorderEnabled(e.target.checked)}
+          id="mission-city"
+          className="input"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          placeholder="Sofia"
         />
-        <span>Search nearby countries too when supported</span>
-      </label>
-
-      <div className="feed-filter-group" style={{ marginTop: 18 }}>
-        <label className="feed-filter-label">Marketplaces</label>
-        <div className="feed-pill-group">
-          {availableMarketplaces.map((marketplace) => (
-            <button
-              key={marketplace.id}
-              type="button"
-              className={`feed-pill${marketplaceScope.includes(marketplace.id) ? ' active' : ''}`}
-              onClick={() => toggleMarketplace(marketplace.id)}
-            >
-              {marketplace.label}
-            </button>
-          ))}
-        </div>
       </div>
-      <p className="section-support">
-        {user?.tier ? `${user.tier.toUpperCase()} plan:` : 'Current plan:'} up to {maxMarketplaces}{' '}
-        marketplace{maxMarketplaces === 1 ? '' : 's'} per mission.
-      </p>
+
+      <details className="mission-advanced">
+        <summary className="mission-advanced-summary">Advanced</summary>
+
+        <div className="mission-advanced-body">
+          <div className="input-stack">
+            <label className="label" htmlFor="mission-name">
+              Mission name (optional)
+            </label>
+            <input
+              id="mission-name"
+              className="input"
+              placeholder="Auto-derived from your search query if blank"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="feed-pill-group" style={{ marginBottom: 14, marginTop: 14 }}>
+            {(['phone', 'laptop', 'camera', 'other'] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                className={`feed-pill${category === value ? ' active' : ''}`}
+                onClick={() => setCategory(value)}
+              >
+                {value}
+              </button>
+            ))}
+          </div>
+
+          <div className="feed-filter-group" style={{ marginTop: 14 }}>
+            <label className="feed-filter-label">Condition</label>
+            <div className="feed-pill-group">
+              {CONDITIONS.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`feed-pill${conditions.includes(value) ? ' active' : ''}`}
+                  onClick={() => toggleCondition(value)}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="feed-filter-group" style={{ marginTop: 14 }}>
+            <label className="feed-filter-label">Must-haves</label>
+            <div className="generator-bar">
+              <input
+                className="input"
+                placeholder="Type a must-have and press Enter"
+                value={mustHaveInput}
+                onChange={(e) => setMustHaveInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addMustHave(mustHaveInput);
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => addMustHave(mustHaveInput)}
+              >
+                Add
+              </button>
+            </div>
+            <div className="feed-pill-group" style={{ marginTop: 10 }}>
+              {CATEGORY_SUGGESTIONS[category].map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  className="feed-pill"
+                  onClick={() => addMustHave(suggestion)}
+                >
+                  + {suggestion}
+                </button>
+              ))}
+              {mustHaves.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  className="feed-pill active"
+                  onClick={() => setMustHaves((prev) => prev.filter((entry) => entry !== value))}
+                >
+                  {value} ×
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="feed-filter-group" style={{ marginTop: 18 }}>
+            <label className="feed-filter-label">Location</label>
+          </div>
+
+          <div className="location-grid">
+            <div className="input-stack">
+              <label className="label" htmlFor="mission-country">
+                Country
+              </label>
+              <select
+                id="mission-country"
+                className="input"
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+              >
+                {SUPPORTED_COUNTRIES.map((country) => (
+                  <option key={country.code} value={country.code}>
+                    {country.label}
+                  </option>
+                ))}
+              </select>
+              {countryCode !== 'BG' && (
+                <p className="text-xs text-muted-foreground" style={{ marginTop: 4 }}>
+                  Set Country to Bulgaria to search OLX BG.{' '}
+                  <a href="/settings" className="underline">
+                    Update default in Settings.
+                  </a>
+                </p>
+              )}
+            </div>
+
+            <div className="input-stack">
+              <label className="label" htmlFor="mission-radius">
+                Travel radius (km)
+              </label>
+              <input
+                id="mission-radius"
+                type="number"
+                min={1}
+                max={500}
+                className="input"
+                value={travelRadius}
+                onChange={(e) => setTravelRadius(Number(e.target.value) || 1)}
+              />
+            </div>
+
+            <div className="input-stack">
+              <label className="label" htmlFor="mission-region">
+                Region
+              </label>
+              <input
+                id="mission-region"
+                className="input"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                placeholder="Sofia City"
+              />
+            </div>
+
+            <div className="input-stack">
+              <label className="label" htmlFor="mission-postal">
+                Postal code
+              </label>
+              <input
+                id="mission-postal"
+                className="input"
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+                placeholder="1000"
+              />
+            </div>
+          </div>
+
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={crossBorderEnabled}
+              onChange={(e) => setCrossBorderEnabled(e.target.checked)}
+            />
+            <span>Search nearby countries too when supported</span>
+          </label>
+
+          <div className="feed-filter-group" style={{ marginTop: 18 }}>
+            <label className="feed-filter-label">Marketplaces</label>
+            <div className="feed-pill-group">
+              {availableMarketplaces.map((marketplace) => (
+                <button
+                  key={marketplace.id}
+                  type="button"
+                  className={`feed-pill${marketplaceScope.includes(marketplace.id) ? ' active' : ''}`}
+                  onClick={() => toggleMarketplace(marketplace.id)}
+                >
+                  {marketplace.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="section-support">
+            {user?.tier ? `${user.tier.toUpperCase()} plan:` : 'Current plan:'} up to{' '}
+            {maxMarketplaces} marketplace{maxMarketplaces === 1 ? '' : 's'} per mission.
+          </p>
+        </div>
+      </details>
 
       <div className="hero-actions" style={{ marginTop: 16 }}>
         <button

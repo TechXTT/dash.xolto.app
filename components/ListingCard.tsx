@@ -195,8 +195,16 @@ export function ListingCard({
     }
   }
 
+  // W18-6: Skip is the "walk away" verdict; mute the whole card so it stops
+  // blending into the other three. Pill itself is restyled in CSS via the
+  // existing `action-verdict-skip` class.
+  const isSkip = verdict.key === 'skip';
+
   return (
-    <article className="listing-card">
+    <article
+      className={`listing-card${isSkip ? ' listing-card--skip' : ''}`}
+      data-verdict={verdict.key}
+    >
       <div className="listing-media">
         {item.ImageURLs?.[0] ? (
           // eslint-disable-next-line @next/next/no-img-element

@@ -45,8 +45,8 @@ CI (`.github/workflows/ci.yml`) runs, in order: `install --frozen-lockfile` → 
 | `NEXT_PUBLIC_SENTRY_DSN`            | no                   | Client/server/edge Sentry DSN. When unset, `@sentry/nextjs` init is a silent no-op — no errors are sent.                                                                           |
 | `NEXT_PUBLIC_GIT_SHA`               | no                   | Local override for release identifier. Falls through to `VERCEL_GIT_COMMIT_SHA` on Vercel, then `"dev"`. Read by `next.config.mjs` and exposed as `NEXT_PUBLIC_RELEASE` to Sentry. |
 | `VERCEL_GIT_COMMIT_SHA`             | auto                 | Auto-populated by Vercel; feeds the Sentry release tag.                                                                                                                            |
-| `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID`   | yes (for billing UI) | Stripe price ID for the Pro tier checkout button on `/settings`. Leave blank to disable the button.                                                                                |
-| `NEXT_PUBLIC_STRIPE_POWER_PRICE_ID` | yes (for billing UI) | Stripe price ID for the Power tier checkout button on `/settings`. Leave blank to disable the button.                                                                              |
+| `NEXT_PUBLIC_STRIPE_BUYER_PRICE_ID` | yes (for billing UI) | Stripe price ID for the **Buyer** tier checkout button on `/settings` (mid tier; internal slug `pro`). Backward-compat fallback if unset: `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID` (deprecated).                                                                              |
+| `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID`   | yes (for billing UI) | Stripe price ID for the **Pro** tier checkout button on `/settings` (top tier; internal slug `power`). Backward-compat fallback if unset: `NEXT_PUBLIC_STRIPE_POWER_PRICE_ID` (deprecated).                                                                                |
 
 Any additional `process.env.*` reference added in code must be added to this table and to `.env.example`.
 
@@ -66,7 +66,7 @@ Authenticated dashboard (`app/(dashboard)`):
 - `/matches` — ranked match feed with presenter-layer chips and verdicts (primary surface)
 - `/saved` — saved listings
 - `/shortlist` — active shortlist with draft-offer workflow
-- `/settings` — account, location, plan (Stripe Pro / Power checkout)
+- `/settings` — account, location, plan (Stripe Buyer / Pro checkout)
 - `/feed` — ambient new-listings stream
 - `/searches` — saved-search configuration
 - `/assistant` — chat surface for buying questions
@@ -111,7 +111,7 @@ Shared test fixture (see memory `reference_dash_test_account`):
 
 - email: `test@xolto.app`
 - password: `TestXolto`
-- tier: power (all features unlocked)
+- tier: power (internal slug; user-facing display "Pro" — all features unlocked)
 
 Use this account — do not create ad-hoc fixtures that skew backend telemetry.
 

@@ -200,6 +200,33 @@ export default function MatchesPage() {
     });
   }, [listings, outreachFilters]);
 
+  // W18-6: Today's verdict distribution chip.
+  // Counts only listings whose `Date` (last_seen ISO) falls within the past
+  // 24h. Server already scopes results to the active mission filter and the
+  // user's permission boundary, so we just tally what's loaded. Empty array
+  // → null so the chip is hidden entirely (avoids "Today: 0 buy · 0 …").
+  const todayVerdictCounts = useMemo(() => {
+    if (listings.length === 0) return null;
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    const counts = { buy: 0, negotiate: 0, ask_seller: 0, skip: 0 };
+    for (const l of listings) {
+      if (!l.Date) continue;
+      const t = new Date(l.Date).getTime();
+      if (!Number.isFinite(t) || t < cutoff) continue;
+      // Mirror ListingCard normalization: unknown/missing falls through to
+      // `ask_seller` so the tally matches the on-card verdict the user sees.
+      const key = (
+        ['buy', 'negotiate', 'ask_seller', 'skip'].includes(l.RecommendedAction as string)
+          ? l.RecommendedAction
+          : 'ask_seller'
+      ) as keyof typeof counts;
+      counts[key] += 1;
+    }
+    const total = counts.buy + counts.negotiate + counts.ask_seller + counts.skip;
+    if (total === 0) return null;
+    return counts;
+  }, [listings]);
+
   const hasActiveFilters =
     sort !== DEFAULT_MATCHES_FILTER.sort ||
     marketplace !== DEFAULT_MATCHES_FILTER.market ||
@@ -363,6 +390,15 @@ export default function MatchesPage() {
             <strong>{newCount > 0 ? newCount : '—'}</strong>
           </div>
         </div>
+        {todayVerdictCounts && (
+          <p
+            className="verdict-distribution-chip"
+            data-testid="verdict-distribution-chip"
+          >
+            Today: {todayVerdictCounts.buy} buy · {todayVerdictCounts.negotiate} negotiate ·{' '}
+            {todayVerdictCounts.ask_seller} ask · {todayVerdictCounts.skip} skip
+          </p>
+        )}
       </section>
 
       {pageError && <div className="error-msg">{pageError}</div>}
