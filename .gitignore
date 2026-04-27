@@ -7,3 +7,18 @@ out/
 .env.local
 .env.*.local
 tsconfig.tsbuildinfo
+
+# Claude Code local state
+.claude/agents/
+.claude/worktrees/
+.claude/settings.local.json
+
+# MCP local config (may carry env)
+.mcp.json
+
+# Test / QA artifacts
+*.png
+screenshots/
+test-results/
+playwright-report/
+.playwright-mcp/
