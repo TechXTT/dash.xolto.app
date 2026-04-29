@@ -391,10 +391,7 @@ export default function MatchesPage() {
           </div>
         </div>
         {todayVerdictCounts && (
-          <p
-            className="verdict-distribution-chip"
-            data-testid="verdict-distribution-chip"
-          >
+          <p className="verdict-distribution-chip" data-testid="verdict-distribution-chip">
             Today: {todayVerdictCounts.buy} buy · {todayVerdictCounts.negotiate} negotiate ·{' '}
             {todayVerdictCounts.ask_seller} ask · {todayVerdictCounts.skip} skip
           </p>

@@ -69,9 +69,7 @@ export function MissionForm({
 
     setName(initialMission?.Name || '');
     setTargetQuery(initialMission?.TargetQuery || initialMission?.Name || '');
-    setCategory(
-      (initialMission?.Category as 'phone' | 'laptop' | 'camera' | 'other') || 'camera',
-    );
+    setCategory((initialMission?.Category as 'phone' | 'laptop' | 'camera' | 'other') || 'camera');
     setBudgetMax(initialMission?.BudgetMax || 900);
     setConditions(
       initialMission?.PreferredCondition?.length
@@ -202,9 +200,7 @@ export function MissionForm({
     <section className="surface-panel">
       <div className="section-heading">
         <div>
-          <p className="section-kicker">
-            {initialMission?.ID ? 'Edit mission' : 'New mission'}
-          </p>
+          <p className="section-kicker">{initialMission?.ID ? 'Edit mission' : 'New mission'}</p>
           <h3>
             {initialMission?.ID
               ? 'Update the mission scope and search brief'

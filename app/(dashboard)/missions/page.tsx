@@ -29,8 +29,14 @@ function formatLastMatch(value?: string) {
 
 export default function MissionsPage() {
   const router = useRouter();
-  const { missions, refreshMissions, setActiveMission, activeMissionId, refreshShortlist } =
-    useDashboardContext();
+  const {
+    missions,
+    refreshMissions,
+    setActiveMission,
+    activeMissionId,
+    refreshShortlist,
+    searches,
+  } = useDashboardContext();
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
@@ -163,6 +169,14 @@ export default function MissionsPage() {
           {missions.map((mission) => {
             const status = (mission.Status || 'active') as 'active' | 'paused' | 'completed';
             const isUpdating = updatingID === mission.ID;
+            const variantQueries = Array.from(
+              new Set(
+                (searches ?? [])
+                  .filter((s) => s.ProfileID === mission.ID && s.Enabled)
+                  .map((s) => s.Query.trim())
+                  .filter((q) => q.length > 0),
+              ),
+            );
             return (
               <article key={mission.ID} className="search-card saved">
                 <div className="search-card-header">
@@ -174,6 +188,20 @@ export default function MissionsPage() {
                     {missionStatusLabel(status)}
                   </span>
                 </div>
+                {variantQueries.length > 0 && (
+                  <div
+                    className="mission-variants-chips"
+                    data-testid="mission-variants-chips"
+                    aria-label="Search variants for this mission"
+                  >
+                    <span className="variants-label">Searching:</span>
+                    {variantQueries.map((q) => (
+                      <span key={q} className="variant-chip">
+                        {q}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <p className="search-card-copy">
                   {mission.MatchCount ?? 0} matches · {formatLastMatch(mission.LastMatchAt)}
                 </p>

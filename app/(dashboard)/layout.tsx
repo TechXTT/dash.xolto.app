@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { DashboardProvider } from '../../components/DashboardContext';
 import { LocationSetupOverlay } from '../../components/LocationSetupOverlay';
 import { OnboardingOverlay, shouldShowOnboarding } from '../../components/OnboardingOverlay';
-import { api, Mission, ShortlistEntry, User } from '../../lib/api';
+import { api, Mission, SearchSpec, ShortlistEntry, User } from '../../lib/api';
 import { normalizeShortlist } from '../../lib/shortlist';
 import { tierDisplayLabel } from '../../lib/tier';
 
@@ -158,6 +158,7 @@ function resolveActiveMissionID(missions: Mission[], currentID: number, fallback
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [missions, setMissions] = useState<Mission[]>([]);
+  const [searches, setSearches] = useState<SearchSpec[]>([]);
   const [activeMissionId, setActiveMissionId] = useState(0);
   const [shortlist, setShortlist] = useState<ShortlistEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -191,16 +192,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     async function bootstrap() {
       let bootUser: User | null = null;
       try {
-        const [me, shortlistRes, missionsRes] = await Promise.all([
+        const [me, shortlistRes, missionsRes, searchesRes] = await Promise.all([
           api.auth.me(),
           api.shortlist.get().catch(() => ({ shortlist: [] as ShortlistEntry[] })),
           api.missions.list().catch(() => ({ missions: [] as Mission[] })),
+          api.searches.list().catch(() => ({ searches: [] as SearchSpec[] })),
         ]);
         if (cancelled) return;
         bootUser = me;
         setUser(me);
         setShowLocationSetup(!me.country_code);
         setShortlist(normalizeShortlist(shortlistRes.shortlist));
+        setSearches(Array.isArray(searchesRes.searches) ? searchesRes.searches : []);
         const loadedMissions = Array.isArray(missionsRes.missions) ? missionsRes.missions : [];
         setMissions(loadedMissions);
         const storedMissionRaw =
@@ -263,6 +266,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     setActiveMissionId((current) => resolveActiveMissionID(next, current));
   }
 
+  async function refreshSearches() {
+    const res = await api.searches.list().catch(() => ({ searches: [] as SearchSpec[] }));
+    setSearches(Array.isArray(res.searches) ? res.searches : []);
+  }
+
   const shortlistIDs = new Set(shortlist.map((item) => item.ItemID));
 
   async function addToShortlist(itemID: string) {
@@ -302,6 +310,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         activeMissionId,
         setActiveMission: (missionID: number) => setActiveMissionId(missionID > 0 ? missionID : 0),
         refreshMissions,
+        searches,
+        refreshSearches,
         shortlist,
         shortlistIDs,
         refreshShortlist,

@@ -39,14 +39,14 @@ CI (`.github/workflows/ci.yml`) runs, in order: `install --frozen-lockfile` → 
 
 ## Environment variables
 
-| Variable                            | Required             | Purpose                                                                                                                                                                            |
-| ----------------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`               | yes                  | Origin of the markt backend (`lib/api.ts`, `lib/sse.ts`). Defaults to `http://localhost:8000` when unset.                                                                          |
-| `NEXT_PUBLIC_SENTRY_DSN`            | no                   | Client/server/edge Sentry DSN. When unset, `@sentry/nextjs` init is a silent no-op — no errors are sent.                                                                           |
-| `NEXT_PUBLIC_GIT_SHA`               | no                   | Local override for release identifier. Falls through to `VERCEL_GIT_COMMIT_SHA` on Vercel, then `"dev"`. Read by `next.config.mjs` and exposed as `NEXT_PUBLIC_RELEASE` to Sentry. |
-| `VERCEL_GIT_COMMIT_SHA`             | auto                 | Auto-populated by Vercel; feeds the Sentry release tag.                                                                                                                            |
-| `NEXT_PUBLIC_STRIPE_BUYER_PRICE_ID` | yes (for billing UI) | Stripe price ID for the **Buyer** tier checkout button on `/settings` (mid tier; internal slug `pro`). Backward-compat fallback if unset: `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID` (deprecated).                                                                              |
-| `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID`   | yes (for billing UI) | Stripe price ID for the **Pro** tier checkout button on `/settings` (top tier; internal slug `power`). Backward-compat fallback if unset: `NEXT_PUBLIC_STRIPE_POWER_PRICE_ID` (deprecated).                                                                                |
+| Variable                            | Required             | Purpose                                                                                                                                                                                     |
+| ----------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`               | yes                  | Origin of the markt backend (`lib/api.ts`, `lib/sse.ts`). Defaults to `http://localhost:8000` when unset.                                                                                   |
+| `NEXT_PUBLIC_SENTRY_DSN`            | no                   | Client/server/edge Sentry DSN. When unset, `@sentry/nextjs` init is a silent no-op — no errors are sent.                                                                                    |
+| `NEXT_PUBLIC_GIT_SHA`               | no                   | Local override for release identifier. Falls through to `VERCEL_GIT_COMMIT_SHA` on Vercel, then `"dev"`. Read by `next.config.mjs` and exposed as `NEXT_PUBLIC_RELEASE` to Sentry.          |
+| `VERCEL_GIT_COMMIT_SHA`             | auto                 | Auto-populated by Vercel; feeds the Sentry release tag.                                                                                                                                     |
+| `NEXT_PUBLIC_STRIPE_BUYER_PRICE_ID` | yes (for billing UI) | Stripe price ID for the **Buyer** tier checkout button on `/settings` (mid tier; internal slug `pro`). Backward-compat fallback if unset: `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID` (deprecated).   |
+| `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID`   | yes (for billing UI) | Stripe price ID for the **Pro** tier checkout button on `/settings` (top tier; internal slug `power`). Backward-compat fallback if unset: `NEXT_PUBLIC_STRIPE_POWER_PRICE_ID` (deprecated). |
 
 Any additional `process.env.*` reference added in code must be added to this table and to `.env.example`.
 
