@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { createContext, useContext } from 'react';
 
-import type { Mission, ShortlistEntry, User } from '../lib/api';
+import type { Mission, SearchSpec, ShortlistEntry, User } from '../lib/api';
 
 type DashboardContextValue = {
   user: User | null;
@@ -13,6 +13,8 @@ type DashboardContextValue = {
   activeMissionId: number;
   setActiveMission: (missionID: number) => void;
   refreshMissions: () => Promise<void>;
+  searches: SearchSpec[];
+  refreshSearches: () => Promise<void>;
   shortlist: ShortlistEntry[];
   shortlistIDs: Set<string>;
   refreshShortlist: () => Promise<void>;
