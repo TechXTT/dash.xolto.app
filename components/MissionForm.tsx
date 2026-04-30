@@ -135,6 +135,7 @@ export function MissionForm({
   }
 
   async function submit() {
+    if (loading) return; // belt-and-suspenders against double-submit during slow Saving
     // Mission Name was a separate visible field in the v1 form; W18-5 hides
     // it (the buyer types target query + budget + city only, in that order).
     // Derive Name from TargetQuery so the backend contract is unchanged.
@@ -165,15 +166,14 @@ export function MissionForm({
         BudgetStretch: Math.round(budgetMax * 1.1),
         PreferredCondition: conditions,
         RequiredFeatures: mustHaves,
-        SearchQueries: Array.from(
-          new Set(
-            [
-              normalizedQuery,
-              derivedName.toLowerCase(),
-              ...mustHaves.map((value) => value.toLowerCase()),
-            ].filter(Boolean),
-          ),
-        ),
+        // W19-36 / XOL-133: do NOT pre-populate SearchQueries on the form
+        // payload. The backend's EnsureSearchVariants helper (W19-31/32)
+        // expands TargetQuery into 3-5 variants via generator.GenerateSearches.
+        // Pre-populating here was producing 1-deduped-entry payloads (e.g.
+        // "Canon EOS R6" → ["canon eos r6"]) which trips the >=3 skip
+        // threshold incorrectly and ships missions with 1 chip instead of 3-5.
+        // Backend handles expansion authoritatively from TargetQuery alone.
+        SearchQueries: [],
         Status: initialMission?.Status || 'active',
         Urgency: initialMission?.Urgency || 'flexible',
         Category: category,
