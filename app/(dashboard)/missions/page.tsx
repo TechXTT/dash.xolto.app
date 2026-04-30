@@ -32,6 +32,7 @@ export default function MissionsPage() {
   const {
     missions,
     refreshMissions,
+    refreshSearches,
     setActiveMission,
     activeMissionId,
     refreshShortlist,
@@ -130,7 +131,11 @@ export default function MissionsPage() {
         <MissionForm
           initialMission={editingMission}
           onSaved={async (mission) => {
-            await refreshMissions();
+            // W19-36: refresh searches alongside missions so chips render
+            // immediately when user returns to /missions after creation.
+            // Backend POST is synchronous (EnsureSearchVariants runs before
+            // 201 returns) so searches are already in DB at this point.
+            await Promise.all([refreshMissions(), refreshSearches()]);
             if (mission.ID) setActiveMission(mission.ID);
             setShowForm(false);
             setEditingMission(null);
