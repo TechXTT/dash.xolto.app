@@ -69,9 +69,11 @@ async function loginAndSaveState(): Promise<string> {
   // Use networkidle so Next.js middleware auth redirects complete before we check
   // the URL. domcontentloaded returns too early — the redirect fires client-side
   // and cookies are not yet set when storageState is captured.
-  await page.goto(`${BASE_URL}/missions`, { waitUntil: 'networkidle', timeout: 20000 }).catch(() => {
-    // networkidle may not fire on SSE/polling routes; fall through to URL check below
-  });
+  await page
+    .goto(`${BASE_URL}/missions`, { waitUntil: 'networkidle', timeout: 20000 })
+    .catch(() => {
+      // networkidle may not fire on SSE/polling routes; fall through to URL check below
+    });
 
   const url = page.url();
   if (url.includes('/login') || url.includes('/auth')) {
