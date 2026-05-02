@@ -27,7 +27,9 @@ test('XOL-81 Shortlist comparison — mobile 390×844 gate', async () => {
     await page.fill('input[type="email"]', 'test@xolto.app');
     await page.fill('input[type="password"]', 'TestXolto');
     await page.click('button[type="submit"]');
-    await page.waitForURL(`${BASE_URL}/saved`, { timeout: 15000 });
+    await page.waitForURL(/\/(missions|matches|saved)/, { timeout: 15000 });
+    // Re-navigate to /saved — login redirects to /missions for users with missions
+    await page.goto(`${BASE_URL}/saved`, { waitUntil: 'networkidle' });
   }
 
   // 3. Click the compare toggle to enable compare mode
