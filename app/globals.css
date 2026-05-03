@@ -1945,6 +1945,26 @@
     }
   }
 
+  /* XOL-162: 320×568 (iPhone SE 1st gen) — left-edge clipping fix.
+     Reduce hero-panel inner padding and compact title font-size so the full
+     title is visible at the narrowest supported viewport (320px wide).
+     min-width: 0 + overflow-wrap prevent grid-child overflow on the h2. */
+  @media (max-width: 360px) {
+    .hero-panel,
+    .surface-panel,
+    .assistant-card {
+      padding: 12px;
+    }
+
+    .hero-panel.compact h2,
+    .assistant-header h2 {
+      font-size: 1.35rem;
+      min-width: 0;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+  }
+
   /* ──────────────────────────────────────────
      Assistant chat — bubble group + welcome
   ────────────────────────────────────────── */
