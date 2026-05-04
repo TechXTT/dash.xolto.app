@@ -189,6 +189,52 @@ function buildRoutes(): RouteEntry[] {
 }
 
 // ---------------------------------------------------------------------------
+// Class-5 overflow detector (XOL-168)
+// Walks every constrained-overflow OR fixed/absolute-positioned element and
+// asserts none overflow their parent horizontally.
+// Skip elements marked data-allow-overflow="true" (legitimate-scroll opt-out).
+// ---------------------------------------------------------------------------
+
+interface OverflowOffender {
+  tag: string;
+  cls: string;
+  id: string;
+  sw: number;
+  cw: number;
+  overflow: string;
+  position: string;
+  textPreview: string;
+}
+
+async function detectOverflowOffenders(
+  page: import('@playwright/test').Page,
+): Promise<OverflowOffender[]> {
+  return page.evaluate(() => {
+    const offenders: any[] = [];
+    document.querySelectorAll('*').forEach((el) => {
+      const computed = getComputedStyle(el);
+      const isOverflowConstrained = computed.overflow !== 'visible' && computed.overflow !== '';
+      const isFixedOrAbsolute = computed.position === 'fixed' || computed.position === 'absolute';
+      if (!isOverflowConstrained && !isFixedOrAbsolute) return;
+      if ((el as HTMLElement).dataset?.allowOverflow === 'true') return;
+      if (el.scrollWidth > el.clientWidth + 1) {
+        offenders.push({
+          tag: el.tagName,
+          cls: (el as HTMLElement).className || '',
+          id: el.id || '',
+          sw: el.scrollWidth,
+          cw: el.clientWidth,
+          overflow: computed.overflow,
+          position: computed.position,
+          textPreview: (el.textContent || '').slice(0, 60),
+        });
+      }
+    });
+    return offenders;
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Per-viewport describe blocks (10 viewports × 10 routes = 100 tests)
 // ---------------------------------------------------------------------------
 
@@ -270,6 +316,17 @@ for (const vp of VIEWPORTS) {
             overflowResult.scrollWidth,
             `[${vpLabel}][${route.slug}] Horizontal overflow: scrollWidth=${overflowResult.scrollWidth} > innerWidth=${overflowResult.innerWidth}`,
           ).toBeLessThanOrEqual(overflowResult.innerWidth + 1);
+
+          // ----------------------------------------------------------------
+          // ASSERTION 5 (Class-5): No element-level horizontal overflow
+          // Constrained-overflow + fixed/absolute elements must not overflow
+          // their clientWidth. Opt-out: data-allow-overflow="true" on element.
+          // ----------------------------------------------------------------
+          const class5Offenders = await detectOverflowOffenders(page);
+          expect(
+            class5Offenders,
+            `Class-5 overflow at ${route.slug} × ${vp.width}x${vp.height}: ${JSON.stringify(class5Offenders, null, 2)}`,
+          ).toEqual([]);
 
           // ----------------------------------------------------------------
           // ASSERTION 2: No error boundary rendered
