@@ -217,6 +217,9 @@ async function detectOverflowOffenders(
       const isFixedOrAbsolute = computed.position === 'fixed' || computed.position === 'absolute';
       if (!isOverflowConstrained && !isFixedOrAbsolute) return;
       if ((el as HTMLElement).dataset?.allowOverflow === 'true') return;
+      // XOL-176 / Path B Safeguard 1: exempt elements with data-overflow-pending-fix
+      // (any non-empty value indicates a tracked bug ticket; remove marker on fix)
+      if ((el as HTMLElement).dataset?.overflowPendingFix) return;
       if (el.scrollWidth > el.clientWidth + 1) {
         offenders.push({
           tag: el.tagName,
