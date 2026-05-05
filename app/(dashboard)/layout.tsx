@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react';
 
 import { DashboardProvider } from '../../components/DashboardContext';
 import { LocationSetupOverlay } from '../../components/LocationSetupOverlay';
-import { OnboardingOverlay, shouldShowOnboarding } from '../../components/OnboardingOverlay';
 import { api, Mission, SearchSpec, ShortlistEntry, User } from '../../lib/api';
 import { normalizeShortlist } from '../../lib/shortlist';
 import { tierDisplayLabel } from '../../lib/tier';
@@ -164,7 +163,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLocationSetup, setShowLocationSetup] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -233,7 +231,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       } finally {
         if (!cancelled) {
           setLoading(false);
-          setShowOnboarding(Boolean(bootUser?.country_code) && shouldShowOnboarding());
         }
       }
     }
@@ -326,11 +323,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           onSaved={(updatedUser) => {
             setUser(updatedUser);
             setShowLocationSetup(false);
-            setShowOnboarding(shouldShowOnboarding());
           }}
         />
       )}
-      {showOnboarding && <OnboardingOverlay onComplete={() => setShowOnboarding(false)} />}
       <div className="app-shell">
         {menuOpen && (
           <button

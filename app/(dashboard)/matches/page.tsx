@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ListingCard } from '../../../components/ListingCard';
+import { OnboardingOverlay, shouldShowOnboarding } from '../../../components/OnboardingOverlay';
 import { useDashboardContext } from '../../../components/DashboardContext';
 import {
   api,
@@ -97,6 +98,17 @@ export default function MatchesPage() {
   const [minScore, setMinScore] = useState(DEFAULT_MATCHES_FILTER.minScore);
   // XOL-79: outreach filter — client-side multi-select; empty = show all
   const [outreachFilters, setOutreachFilters] = useState<OutreachStatus[]>([]);
+
+  // XOL-166: Onboarding tooltip — local to /matches only.
+  // Renders only when:
+  //   (a) missions exist (pre-mission state suppressed — framing makes no sense without verdicts context)
+  //   (b) shouldShowOnboarding() returns true (localStorage dismissal guard)
+  // Initialized false; set in useEffect to preserve SSR safety (no window access on server).
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    setShowOnboarding(shouldShowOnboarding());
+  }, []);
 
   const [recheckLoading, setRecheckLoading] = useState(false);
   const [recheckCooldownUntil, setRecheckCooldownUntil] = useState<Date | null>(null);
@@ -620,6 +632,10 @@ export default function MatchesPage() {
 
       {isInitialLoading ? (
         <div className="surface-panel empty-state">
+          {/* XOL-166: show empty-state tooltip when missions exist but matches are loading */}
+          {showOnboarding && missions.length > 0 && (
+            <OnboardingOverlay mode="empty-state" onComplete={() => setShowOnboarding(false)} />
+          )}
           <h3>Loading matches…</h3>
           <p>Fetching the latest deals for this mission.</p>
         </div>
@@ -632,6 +648,8 @@ export default function MatchesPage() {
           </button>
         </div>
       ) : missions.length === 0 && listings.length === 0 ? (
+        // Pre-mission state: tooltip suppressed — framing "Each listing shows a verdict"
+        // makes no sense before the user has created a mission and seen any verdicts.
         <div className="surface-panel empty-state">
           <h3>No missions yet</h3>
           <p>Create a mission first to scope and prioritize your matches.</p>
@@ -650,6 +668,10 @@ export default function MatchesPage() {
         </div>
       ) : listings.length === 0 && !error ? (
         <div className="surface-panel empty-state">
+          {/* XOL-166: show empty-state tooltip when missions exist but no matches yet */}
+          {showOnboarding && missions.length > 0 && (
+            <OnboardingOverlay mode="empty-state" onComplete={() => setShowOnboarding(false)} />
+          )}
           <h3>No matches yet for this mission</h3>
           {hasStrictConditionOnly ? (
             <>
@@ -669,6 +691,14 @@ export default function MatchesPage() {
       ) : (
         <>
           <div className="listing-stack">
+            {/* XOL-166: anchored tooltip as first element in listing-stack.
+                Positioned before the first card so the user reads the tooltip
+                in the same eye-fixation as their first verdict pill below it.
+                Suppressed on pre-mission state (missions.length === 0 guard above
+                already handles that — here missions.length > 0 implied). */}
+            {showOnboarding && (
+              <OnboardingOverlay mode="anchored" onComplete={() => setShowOnboarding(false)} />
+            )}
             {filteredListings.map((listing) => (
               <ListingCard
                 key={listing.ItemID}
