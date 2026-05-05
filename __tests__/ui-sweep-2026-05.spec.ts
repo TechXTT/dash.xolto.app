@@ -220,6 +220,10 @@ async function detectOverflowOffenders(
       // XOL-176 / Path B Safeguard 1: exempt elements with data-overflow-pending-fix
       // (any non-empty value indicates a tracked bug ticket; remove marker on fix)
       if ((el as HTMLElement).dataset?.overflowPendingFix) return;
+      // Tag-class universal exemption: form inputs have intentional clip-overflow
+      // for text-scrolling UX (browser-default behavior). See
+      // feedback_class5_assertion_design.md Contract C for design rationale.
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return;
       if (el.scrollWidth > el.clientWidth + 1) {
         offenders.push({
           tag: el.tagName,
