@@ -188,7 +188,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function bootstrap() {
-      let bootUser: User | null = null;
       try {
         const [me, shortlistRes, missionsRes, searchesRes] = await Promise.all([
           api.auth.me(),
@@ -197,7 +196,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           api.searches.list().catch(() => ({ searches: [] as SearchSpec[] })),
         ]);
         if (cancelled) return;
-        bootUser = me;
         setUser(me);
         setShowLocationSetup(!me.country_code);
         setShortlist(normalizeShortlist(shortlistRes.shortlist));
