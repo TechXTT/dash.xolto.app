@@ -267,7 +267,7 @@ export function AssistantChat({
 
       {/* Chat card */}
       <div className="assistant-card">
-        <div className="assistant-stream">
+        <div className="assistant-stream" data-overflow-pending-fix="XOL-176">
           {hydrating ? (
             <div className="assistant-empty">
               <div className="loading-orb" />
