@@ -292,6 +292,7 @@ export function AssistantChat({
                     key={prompt}
                     type="button"
                     className="prompt-pill"
+                    data-allow-overflow="true"
                     onClick={() => {
                       setMessage(prompt);
                       inputRef.current?.focus();
