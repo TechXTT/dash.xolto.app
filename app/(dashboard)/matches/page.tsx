@@ -694,9 +694,9 @@ export default function MatchesPage() {
             {/* XOL-166: anchored tooltip as first element in listing-stack.
                 Positioned before the first card so the user reads the tooltip
                 in the same eye-fixation as their first verdict pill below it.
-                Suppressed on pre-mission state (missions.length === 0 guard above
-                already handles that — here missions.length > 0 implied). */}
-            {showOnboarding && (
+                Explicit missions.length > 0 gate suppresses tooltip on legacy-feed-
+                without-missions state (listings exist but no mission context). */}
+            {showOnboarding && missions.length > 0 && (
               <OnboardingOverlay mode="anchored" onComplete={() => setShowOnboarding(false)} />
             )}
             {filteredListings.map((listing) => (
