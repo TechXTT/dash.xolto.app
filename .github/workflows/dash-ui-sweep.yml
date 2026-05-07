@@ -1,5 +1,11 @@
 name: Dash UI Sweep
 
+# Trigger divergence from admin (intentional): admin's sweep runs on PR only.
+# Dash sweep also runs on push:main for post-merge regression detection against
+# production — when no Vercel preview URL is available (push events don't have a
+# per-commit preview), PLAYWRIGHT_BASE_URL falls back to https://dash.xolto.app
+# and the sweep validates production state. This catches drift between merged
+# main and live prod that would otherwise go unnoticed until the next PR.
 on:
   pull_request:
     branches:
