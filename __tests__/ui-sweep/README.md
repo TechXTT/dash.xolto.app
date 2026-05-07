@@ -16,12 +16,12 @@ XOL-150 (W19-56) created the sweep spec as a regression baseline and investor-DD
 
 ## Required env vars
 
-| Variable                          | Description                                                                                                                                                                                  |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PLAYWRIGHT_BASE_URL`             | Dash app base URL. On PR runs, automatically set to the Vercel preview URL (XOL-177). Defaults to `https://dash.xolto.app` when unset.                                                       |
-| `DASH_TEST_EMAIL`                 | Email for the dash test account (normal-user role)                                                                                                                                           |
-| `DASH_TEST_PASSWORD`              | Password for the dash test account                                                                                                                                                           |
-| `VERCEL_AUTOMATION_BYPASS_SECRET` | Vercel protection-bypass token for preview deployments. Required to reach Vercel preview URLs that are behind Deployment Protection. Omit for local runs against production.                 |
+| Variable                          | Description                                                                                                                                                                  |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PLAYWRIGHT_BASE_URL`             | Dash app base URL. On PR runs, automatically set to the Vercel preview URL (XOL-177). Defaults to `https://dash.xolto.app` when unset.                                       |
+| `DASH_TEST_EMAIL`                 | Email for the dash test account (normal-user role)                                                                                                                           |
+| `DASH_TEST_PASSWORD`              | Password for the dash test account                                                                                                                                           |
+| `VERCEL_AUTOMATION_BYPASS_SECRET` | Vercel protection-bypass token for preview deployments. Required to reach Vercel preview URLs that are behind Deployment Protection. Omit for local runs against production. |
 
 The test account must be a valid dash user with missions or matches data to exercise assertion coverage on `/matches`.
 
