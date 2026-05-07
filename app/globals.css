@@ -2875,26 +2875,34 @@
 
   /* ──────────────────────────────────────────
      Onboarding Tooltip (W18-5 — replaces 5-step modal)
+     XOL-166: relocated from fixed overlay to inline-anchored block on /matches.
      Reuses existing design tokens; no new colors / shadows / font sizes.
   ────────────────────────────────────────── */
 
+  /* Base: in-flow block — no fixed/absolute positioning.
+     Both modes (anchored + empty-state) share these styles. */
   .onboarding-tip {
-    position: fixed;
-    top: 72px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-    width: min(440px, calc(100% - 32px));
+    width: 100%;
     animation: onboarding-slide-up 280ms ease-out;
-    pointer-events: none;
+    margin-bottom: 4px;
   }
 
   .onboarding-tip.exit {
     animation: onboarding-fade-out 200ms ease-in forwards;
   }
 
+  /* anchored mode: sits before the first ListingCard inside .listing-stack.
+     The downward arrow points toward the first verdict pill on the card below. */
+  .onboarding-tip--anchored {
+    margin-bottom: 0;
+  }
+
+  /* empty-state mode: sits inside .surface-panel.empty-state above the heading. */
+  .onboarding-tip--empty-state {
+    margin-bottom: 12px;
+  }
+
   .onboarding-tip-card {
-    pointer-events: auto;
     background: var(--surface-strong);
     border: 1px solid var(--border-brand);
     box-shadow: var(--shadow-xl);
@@ -2942,10 +2950,16 @@
     background: var(--brand-700, var(--brand-600));
   }
 
-  @media (max-width: 480px) {
-    .onboarding-tip {
-      top: 64px;
-    }
+  /* Downward arrow: a small CSS triangle below the card pointing at the first
+     verdict pill on the card below (anchored) or the matches that will appear
+     (empty-state). Uses border-trick triangle; no images needed. */
+  .onboarding-tip-arrow {
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid var(--border-brand);
+    margin: 0 0 0 20px;
   }
 
   /* ──────────────────────────────────────────
