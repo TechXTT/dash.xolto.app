@@ -9,7 +9,8 @@
     "lint": "next lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:ui-sweep": "playwright test __tests__/ui-sweep-2026-05.spec.ts --reporter=line --workers=2"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.48.0",
