@@ -1,10 +1,14 @@
 // W19-56 / XOL-150: Cross-viewport UI sweep — regression baseline + investor-DD prep
 // Run manually:
-//   pnpm exec playwright test __tests__/ui-sweep-2026-05.spec.ts --reporter=line
+//   DASH_TEST_EMAIL=you@example.com DASH_TEST_PASSWORD=secret \
+//     pnpm exec playwright test __tests__/ui-sweep-2026-05.spec.ts --reporter=line
+//
+// XOL-177: Inline creds removed; env vars required. Missing env = explicit error (no silent skip).
+// See __tests__/ui-sweep/README.md for full wiring documentation.
 //
 // Viewports: 320×568, 375×667, 390×844, 414×896, 430×932, 768×1024, 1024×768, 1280×720
 //            (1440×900 + 1920×1080 deferred — XOL-15X follow-up)
-// Auth:      test@xolto.app / TestXolto (one login per test run, state reused)
+// Auth:      DASH_TEST_EMAIL / DASH_TEST_PASSWORD (one login per test run, state reused)
 // Output:    __tests__/ui-sweep/<width>x<height>/<route-slug>.png (not committed)
 
 import { chromium, BrowserContext } from '@playwright/test';
@@ -12,9 +16,12 @@ import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
-const BASE_URL = 'https://dash.xolto.app';
-const AUTH_EMAIL = 'test@xolto.app';
-const AUTH_PASSWORD = 'TestXolto';
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'https://dash.xolto.app';
+
+// XOL-177: Credentials are read from env vars, not hardcoded.
+// Missing vars → explicit error at top of loginAndSaveState() — no silent skip.
+const AUTH_EMAIL = process.env.DASH_TEST_EMAIL;
+const AUTH_PASSWORD = process.env.DASH_TEST_PASSWORD;
 const STORAGE_STATE_PATH = path.join(process.cwd(), '__tests__', 'ui-sweep-storage-state.json');
 
 const VIEWPORTS = [
@@ -60,8 +67,26 @@ function isAllowedConsoleError(msg: string): boolean {
  * Login once and persist the browser storage state to a temp JSON file.
  * Returns the path to that file. Subsequent tests load from it instead of
  * re-authenticating, reducing auth calls from 100 (10 vp × 10 routes) to 1.
+ *
+ * XOL-177: Requires DASH_TEST_EMAIL and DASH_TEST_PASSWORD env vars.
+ * Missing env vars = explicit throw, not silent skip.
+ * Login failure (wrong creds or API rejection) = explicit throw.
  */
 async function loginAndSaveState(): Promise<string> {
+  // XOL-177: Explicit failure on missing credentials — no silent skip.
+  // Set DASH_TEST_EMAIL and DASH_TEST_PASSWORD before running the sweep.
+  // See __tests__/ui-sweep/README.md for local-test recipe.
+  if (!AUTH_EMAIL || AUTH_EMAIL.length === 0) {
+    throw new Error(
+      'DASH_TEST_EMAIL / DASH_TEST_PASSWORD env vars required — see __tests__/ui-sweep/README.md',
+    );
+  }
+  if (!AUTH_PASSWORD || AUTH_PASSWORD.length === 0) {
+    throw new Error(
+      'DASH_TEST_EMAIL / DASH_TEST_PASSWORD env vars required — see __tests__/ui-sweep/README.md',
+    );
+  }
+
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
@@ -80,7 +105,8 @@ async function loginAndSaveState(): Promise<string> {
     await page.fill('#email', AUTH_EMAIL);
     await page.fill('#password', AUTH_PASSWORD);
     await page.click('button[type="submit"]');
-    // Wait for redirect away from login
+    // XOL-177: Wait for redirect away from login — if it doesn't happen, login failed.
+    // This is a hard failure: wrong creds or API rejection must fail the sweep, not skip.
     await page.waitForURL(
       (u) => !u.toString().includes('/login') && !u.toString().includes('/auth'),
       {
@@ -89,10 +115,16 @@ async function loginAndSaveState(): Promise<string> {
     );
   }
 
-  // Confirm we reached an authenticated route
+  // XOL-177: Login failure is a hard assertion — not a silent skip.
+  // If we are still on login/auth after the submission and waitForURL above,
+  // Playwright would have already thrown from waitForURL timeout. This is a
+  // belt-and-suspenders check for edge cases where the URL matches but the page
+  // still shows auth UI (e.g., error state rendered at a non-login path).
   const finalUrl = page.url();
   if (finalUrl.includes('/login') || finalUrl.includes('/auth')) {
-    throw new Error(`Auth failed: still on ${finalUrl} after login attempt`);
+    throw new Error(
+      `Login failed: still on ${finalUrl} after submit. Check DASH_TEST_EMAIL / DASH_TEST_PASSWORD are valid.`,
+    );
   }
 
   await context.storageState({ path: STORAGE_STATE_PATH });

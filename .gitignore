@@ -21,8 +21,12 @@ tsconfig.tsbuildinfo
 screenshots/
 test-results/
 playwright-report/
+playwright-failures/
+playwright-junit/
 .playwright-mcp/
-__tests__/ui-sweep/
+__tests__/ui-sweep/*/
+!__tests__/ui-sweep/README.md
 __tests__/ui-sweep-storage-state.json
 __tests__/ui-sweep-storage-state.json
 __tests__/.auth/
+.env.test
